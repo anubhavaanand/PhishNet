@@ -3,6 +3,8 @@
  * Handles model loading, message routing, and inference coordination
  */
 
+import logger from './utils/logger.js';
+
 // State
 let offscreenDocumentCreated = false;
 let modelStatus = 'loading'; // 'loading' | 'ready' | 'error'
@@ -18,7 +20,7 @@ let settings = {
  * Initialize background service worker
  */
 async function init() {
-  console.log('[PhishNet] Background service worker starting');
+  logger.debug('Background service worker starting');
 
   // Load settings from storage
   await loadSettings();
@@ -78,7 +80,7 @@ async function createOffscreenDocument() {
 
     if (existing) {
       offscreenDocumentCreated = true;
-      console.log('[PhishNet] Offscreen document already exists');
+      logger.debug('Offscreen document already exists');
       return;
     }
 
@@ -90,13 +92,13 @@ async function createOffscreenDocument() {
     });
 
     offscreenDocumentCreated = true;
-    console.log('[PhishNet] Offscreen document created');
+    logger.debug('Offscreen document created');
 
     // Wait for offscreen to signal readiness
     await waitForOffscreenReady();
 
   } catch (error) {
-    console.error('[PhishNet] Failed to create offscreen document:', error);
+    logger.error('Failed to create offscreen document:', error);
     modelStatus = 'error';
     broadcastModelStatus({ error: error.message });
   }
@@ -173,7 +175,7 @@ async function handleContentScriptMessage(message, sender, sendResponse) {
         const result = await runInference(message.payload);
         sendResponse({ success: true, result });
       } catch (error) {
-        console.error('[PhishNet] Inference error:', error);
+        logger.error('Inference error:', error);
         sendResponse({ success: false, error: error.message });
       }
       break;
@@ -336,7 +338,7 @@ init();
 
 // Handle extension install/update
 chrome.runtime.onInstalled.addListener(async (details) => {
-  console.log('[PhishNet] Installed/updated:', details.reason);
+  logger.debug('Installed/updated:', details.reason);
   if (details.reason === 'install') {
     // Set default settings
     await saveSettings(settings);
@@ -345,6 +347,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 // Handle extension startup
 chrome.runtime.onStartup.addListener(() => {
-  console.log('[PhishNet] Browser startup');
+  logger.debug('Browser startup');
   init();
 });

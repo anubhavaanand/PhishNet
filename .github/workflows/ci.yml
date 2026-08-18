@@ -1,0 +1,225 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          # Only for icon generation / dev tools
+          npm ci || true
+
+      - name: Check manifest.json validity
+        run: |
+          node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            console.log('Manifest version:', manifest.manifest_version);
+            console.log('Name:', manifest.name);
+            console.log('Version:', manifest.version);
+            // Required fields check
+            const required = ['manifest_version', 'name', 'version', 'description', 'icons', 'background', 'content_scripts', 'permissions'];
+            for (const field of required) {
+              if (!manifest[field]) {
+                console.error('Missing required field:', field);
+                process.exit(1);
+              }
+            }
+            console.log('✅ Manifest valid');
+          "
+
+      - name: Check for console.log in production code
+        run: |
+          if grep -r "console\.log" src/ --include="*.js" | grep -v "console\.error\|console\.warn"; then
+            echo "❌ Found console.log in production code"
+            exit 1
+          else
+            echo "✅ No console.log in production code"
+          fi
+
+      - name: Check CSP compliance (no inline scripts)
+        run: |
+          # Check HTML files for inline scripts
+          if grep -r "<script>" src/ --include="*.html" | grep -v "type=\"module\""; then
+            echo "❌ Found inline script without type=module"
+            exit 1
+          fi
+          # Check for eval/Function constructor
+          if grep -r "eval(\|new Function" src/ --include="*.js"; then
+            echo "❌ Found eval() or new Function()"
+            exit 1
+          fi
+          echo "✅ CSP compliant"
+
+  validate:
+    name: Validate Extension Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required files exist
+        run: |
+          required_files=(
+            "manifest.json"
+            "src/background.js"
+            "src/content.js"
+            "src/offscreen.js"
+            "src/popup.html"
+            "src/popup.js"
+            "src/selectors.js"
+            "src/styles.css"
+            "public/offscreen.html"
+            "public/icons/icon-16.png"
+            "public/icons/icon-32.png"
+            "public/icons/icon-48.png"
+            "public/icons/icon-128.png"
+            "LICENSE"
+            "PRIVACY_POLICY.md"
+            "README.md"
+          )
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All required files present"
+
+      - name: Validate manifest.json references
+        run: |
+          node -e "
+            const fs = require('fs');
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            
+            // Check icon files exist
+            for (const [size, path] of Object.entries(manifest.icons)) {
+              if (!fs.existsSync(path)) {
+                console.error('Missing icon:', path);
+                process.exit(1);
+              }
+            }
+            
+            // Check content script files
+            for (const cs of manifest.content_scripts) {
+              for (const js of cs.js) {
+                if (!fs.existsSync(js)) {
+                  console.error('Missing content script:', js);
+                  process.exit(1);
+                }
+              }
+              for (const css of cs.css || []) {
+                if (!fs.existsSync(css)) {
+                  console.error('Missing content style:', css);
+                  process.exit(1);
+                }
+              }
+            }
+            
+            // Check background
+            if (!fs.existsSync(manifest.background.service_worker)) {
+              console.error('Missing background script');
+              process.exit(1);
+            }
+            
+            // Check offscreen
+            if (!fs.existsSync(manifest.offscreen.pages[0])) {
+              console.error('Missing offscreen page');
+              process.exit(1);
+            }
+            
+            // Check action popup
+            if (!fs.existsSync(manifest.action.default_popup)) {
+              console.error('Missing popup HTML');
+              process.exit(1);
+            }
+            
+            console.log('✅ All manifest references valid');
+          "
+
+      - name: Check icon dimensions
+        run: |
+          # Quick size check using file command
+          for size in 16 32 48 128; do
+            file "public/icons/icon-${size}.png" | grep -q "${size} x ${size}" || {
+              echo "❌ Icon ${size}px has wrong dimensions"
+              exit 1
+            }
+          done
+          echo "✅ All icons have correct dimensions"
+
+  package:
+    name: Package Extension
+    runs-on: ubuntu-latest
+    needs: [lint, validate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('manifest.json')).version)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create extension zip
+        run: |
+          zip -r "phishnet-v${{ steps.version.outputs.version }}.zip" \
+            manifest.json \
+            src/ \
+            public/ \
+            -x "*.git*" "node_modules/*" "doc/*" "*.md" ".gitignore" ".DS_Store" "generate_*" ".github/*"
+
+      - name: Verify zip contents
+        run: |
+          unzip -l "phishnet-v${{ steps.version.outputs.version }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phishnet-extension
+          path: "phishnet-v${{ steps.version.outputs.version }}.zip"
+          retention-days: 30
+
+  test:
+    name: Test (Placeholder)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright
+          npx playwright install chromium
+
+      - name: Run smoke test (placeholder)
+        run: |
+          echo "⚠️ E2E tests not yet implemented"
+          echo "TODO: Add Playwright tests for:"
+          echo "  - Extension loads without errors"
+          echo "  - Content script injects on Gmail/Outlook"
+          echo "  - Badge appears on test email"
+          echo "  - Popup opens and shows status"
+          exit 0

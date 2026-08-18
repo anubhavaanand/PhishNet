@@ -4,6 +4,7 @@
  */
 
 import { pipeline, env, AutoTokenizer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
+import logger from './utils/logger.js';
 
 // Configure Transformers.js environment
 env.allowLocalModels = true;
@@ -44,7 +45,7 @@ let modelLoaded = false;
  * Initialize and load model
  */
 async function init() {
-  console.log('[PhishNet Offscreen] Initializing...');
+  logger.debug('Initializing...');
 
   try {
     // Report progress
@@ -70,10 +71,10 @@ async function init() {
     // Notify background
     chrome.runtime.sendMessage({ type: 'OFFSCREEN_READY' });
 
-    console.log('[PhishNet Offscreen] Model loaded successfully');
+    logger.debug('Model loaded successfully');
 
   } catch (error) {
-    console.error('[PhishNet Offscreen] Failed to load model:', error);
+    logger.error('Failed to load model:', error);
     chrome.runtime.sendMessage({
       type: 'OFFSCREEN_ERROR',
       error: error.message
@@ -138,7 +139,7 @@ async function runInference(text, settings) {
     };
 
   } catch (error) {
-    console.error('[PhishNet Offscreen] Inference error:', error);
+    logger.error('Inference error:', error);
     throw error;
   }
 }

@@ -1,0 +1,116 @@
+name: 🐛 Bug Report
+description: Report a bug in PhishNet
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the form below.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of PhishNet is affected?
+      options:
+        - Content Script (Gmail/Outlook DOM extraction)
+        - Background Service Worker
+        - Offscreen Document (Model inference)
+        - Popup UI
+        - Styles/Badges
+        - Selectors
+        - Settings/Storage
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Email Provider
+      description: Where did the bug occur?
+      options:
+        - Gmail (mail.google.com)
+        - Outlook.com (outlook.live.com)
+        - Outlook Office 365 (outlook.office.com)
+        - Both/All
+        - Not provider-specific
+    validations:
+      required: true
+
+  - type: input
+    id: chrome-version
+    attributes:
+      label: Chrome Version
+      description: Run `chrome://version` and paste the version number
+      placeholder: "128.0.6613.119"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear and concise description of the bug
+      placeholder: "When opening a phishing email in Gmail, the badge doesn't appear..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug
+      placeholder: |
+        1. Open Gmail
+        2. Open a phishing test email
+        3. Wait for model to load
+        4. Observe no badge appears
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+      placeholder: "Red phishing badge should appear near sender with confidence score"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happens?
+      placeholder: "No badge appears, no errors in console"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Logs / Errors
+      description: Paste any relevant console output (remove sensitive data!)
+      render: shell
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy Check
+      options:
+        - label: This bug report contains NO email content, sender info, or personal data
+          required: true
+        - label: I have verified no sensitive data in logs/screenshots
+          required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical (extension crashes, model fails to load)
+        - High (detection fails, false positives/negatives)
+        - Medium (UI issues, settings not persisting)
+        - Low (cosmetic, minor UX)
+    validations:
+      required: true

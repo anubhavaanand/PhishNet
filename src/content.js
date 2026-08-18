@@ -4,6 +4,7 @@
  */
 
 import { getSelectorsForCurrentSite, EMAIL_SELECTORS, UTILITY_SELECTORS } from './selectors.js';
+import logger from './utils/logger.js';
 
 // State
 let currentSelectors = null;
@@ -19,11 +20,11 @@ function init() {
   currentSelectors = getSelectorsForCurrentSite();
 
   if (!currentSelectors) {
-    console.log('[PhishNet] Not on supported email provider');
+    logger.debug('Not on supported email provider');
     return;
   }
 
-  console.log(`[PhishNet] Initialized for ${currentSelectors.provider} (${currentSelectors.variant})`);
+  logger.debug(`Initialized for ${currentSelectors.provider} (${currentSelectors.variant})`);
 
   // Start observing for email opens
   startEmailObserver();
@@ -114,7 +115,7 @@ async function scanEmail(element, emailId) {
     const emailContent = extractEmailContent(element);
 
     if (!emailContent.text || emailContent.text.length < 20) {
-      console.log('[PhishNet] Email too short, skipping');
+      logger.debug('Email too short, skipping');
       return;
     }
 
@@ -135,7 +136,7 @@ async function scanEmail(element, emailId) {
       highlightLinks(element, response.result);
     }
   } catch (error) {
-    console.error('[PhishNet] Scan failed:', error);
+    logger.error('Scan failed:', error);
   }
 }
 
@@ -483,7 +484,7 @@ function handleMessage(message, sender, sendResponse) {
  */
 function updateModelStatusUI(status) {
   // Could show a temporary indicator in the email list
-  console.log('[PhishNet] Model status:', status);
+  logger.debug('Model status:', status);
 }
 
 /**

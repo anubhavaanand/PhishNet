@@ -3,6 +3,8 @@
  * Handles UI interactions and communicates with background
  */
 
+import logger from './utils/logger.js';
+
 // DOM Elements
 const statusIndicator = document.getElementById('statusIndicator');
 const statusLabel = document.getElementById('statusLabel');
@@ -62,7 +64,7 @@ async function refreshStatus() {
       updateScanButton(response.modelStatus);
     }
   } catch (error) {
-    console.error('[PhishNet Popup] Status refresh failed:', error);
+    logger.error('Status refresh failed:', error);
   }
 }
 
@@ -118,7 +120,7 @@ async function loadSettings() {
       applySettingsToUI();
     }
   } catch (error) {
-    console.error('[PhishNet Popup] Settings load failed:', error);
+    logger.error('Settings load failed:', error);
   }
 }
 
@@ -273,7 +275,7 @@ async function updateSetting(key, value) {
       settings: currentSettings
     });
   } catch (error) {
-    console.error('[PhishNet Popup] Settings update failed:', error);
+    logger.error('Settings update failed:', error);
     // Revert UI on failure
     loadSettings();
   }

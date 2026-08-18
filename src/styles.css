@@ -67,13 +67,13 @@
   font-size: 10px;
 }
 
-/* Tooltip */
+/* Tooltip - supports both data-tooltip (badge) and data-phishnet-tooltip (links) */
 .phishnet-tooltip-trigger {
   position: relative;
 }
 
 .phishnet-tooltip-trigger:hover::after {
-  content: attr(data-tooltip);
+  content: attr(data-tooltip) || attr(data-phishnet-tooltip);
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
@@ -125,6 +125,13 @@
   border-radius: 2px;
 }
 
+/* Link tooltip - specific styling for links */
+.phishnet-link--suspicious.phishnet-tooltip-trigger:hover::after {
+  max-width: 250px;
+  font-size: 10px;
+  padding: 8px 10px;
+}
+
 /* Warning indicator for links */
 .phishnet-link-warning {
   display: inline-flex;
@@ -139,6 +146,13 @@
   margin-left: 4px;
   flex-shrink: 0;
   animation: phishnet-bounce 1s ease-in-out infinite;
+}
+
+/* Link hover enhancement */
+.phishnet-link--suspicious:focus {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 @keyframes phishnet-bounce {

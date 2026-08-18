@@ -167,7 +167,9 @@ async function handleContentScriptMessage(message, sender, sendResponse) {
 
     case 'SCAN_EMAIL':
       if (modelStatus !== 'ready') {
-        sendResponse({ success: false, error: 'Model not ready' });
+        // Model not ready - use heuristic fallback
+        logger.debug('Model not ready, content script will use heuristic fallback');
+        sendResponse({ success: false, error: 'Model not ready', useHeuristic: true });
         return;
       }
 
@@ -306,20 +308,6 @@ function runInference(emailData) {
 }
 
 /**
- * Broadcast model status to all content scripts
- */
-function broadcastModelStatus(extra = {}) {
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach(tab => {
-      chrome.tabs.sendMessage(tab.id, {
-        type: 'MODEL_STATUS',
-        payload: { status: modelStatus, progress: modelLoadProgress, ...extra }
-      }).catch(() => {}); // Ignore errors for tabs without content script
-    });
-  });
-}
-
-/**
  * Broadcast settings update to all content scripts
  */
 function broadcastSettingsUpdate() {
@@ -329,6 +317,20 @@ function broadcastSettingsUpdate() {
         type: 'SETTINGS_UPDATE',
         payload: settings
       }).catch(() => {});
+    });
+  });
+}
+
+/**
+ * Broadcast model status to all content scripts
+ */
+function broadcastModelStatus(extra = {}) {
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach(tab => {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'MODEL_STATUS',
+        payload: { status: modelStatus, progress: modelLoadProgress, ...extra }
+      }).catch(() => {}); // Ignore errors for tabs without content script
     });
   });
 }

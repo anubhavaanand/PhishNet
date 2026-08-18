@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishNet Test Emails</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    .email { border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .email-header { display: flex; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
+    .email-meta { flex: 1; }
+    .email-subject { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+    .email-sender { color: #6b7280; font-size: 14px; }
+    .email-body { white-space: pre-wrap; font-size: 14px; color: #374151; }
+    .email-body a { color: #0ea5e9; text-decoration: underline; }
+    .label { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    .label-phishing { background: #fee2e2; color: #991b1b; }
+    .label-safe { background: #dcfce7; color: #166534; }
+    .label-uncertain { background: #fef3c7; color: #92400e; }
+    h1 { color: #111827; }
+    .note { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #92400e; }
+  </style>
+</head>
+<body>
+  <h1>🎣 PhishNet Test Emails</h1>
+  <p>Open these emails in Gmail/Outlook to test PhishNet detection.</p>
+  
+  <div class="note">
+    <strong>How to test:</strong>
+    1. Load PhishNet extension in Chrome (Developer mode → Load unpacked)
+    2. Open Gmail (<code>mail.google.com</code>) or Outlook (<code>outlook.live.com</code>)
+    3. Compose a new email to yourself with the content below
+    3. Send and open the email
+    4. PhishNet badge should appear near sender/subject
+  </div>
+
+  <!-- Phishing Test Email 1 -->
+  <div class="email">
+    <div class="email-header">
+      <span class="label label-phishing">Expected: PHISHING</span>
+      <div class="email-meta">
+        <div class="email-subject">URGENT: Your Account Will Be Closed!</div>
+        <div class="email-sender">Security Team <security@paypal-verification.tk></div>
+      </div>
+    </div>
+    <div class="email-body">
+Dear Customer,
+
+We detected unusual activity on your PayPal account. Your account will be permanently suspended within 24 hours unless you verify your identity immediately.
+
+Click here to verify: http://paypal-security-update.ml/verify?token=abc123
+
+Please update your password and confirm your credentials to avoid permanent account closure.
+
+This is urgent - act now to protect your account!
+
+Regards,
+PayPal Security Team
+    </div>
+  </div>
+
+  <!-- Phishing Test Email 2 -->
+  <div class="email">
+    <div class="email-header">
+      <span class="label label-phishing">Expected: PHISHING</span>
+      <div class="email-meta">
+        <div class="email-subject">Invoice #INV-2026-0042 - Payment Required</div>
+        <div class="email-sender">Billing Department <billing@microsoft-services.xyz></div>
+      </div>
+    </div>
+    <div class="email-body">
+Dear Valued Customer,
+
+Your Microsoft 365 subscription payment has failed. Invoice #INV-2026-0042 for $149.99 is now past due.
+
+To avoid service interruption, please update your payment method immediately:
+
+http://microsoft-billing-update.cf/pay?invoice=INV-2026-0042
+
+If payment is not received within 48 hours, your account will be suspended and all data will be deleted.
+
+Contact support if you have questions.
+
+Microsoft Billing Team
+    </div>
+  </div>
+
+  <!-- Legitimate Test Email 1 -->
+  <div class="email">
+    <div class="email-header">
+      <span class="label label-safe">Expected: SAFE</span>
+      <div class="email-meta">
+        <div class="email-subject">Your GitHub Security Alert</div>
+        <div class="email-sender">GitHub <noreply@github.com></div>
+      </div>
+    </div>
+    <div class="email-body">
+Hi there,
+
+We noticed a new sign-in to your GitHub account from a new device.
+
+Device: Chrome on Windows
+Location: San Francisco, CA
+Time: August 18, 2026 2:30 PM PDT
+
+If this was you, no action is needed. If not, please secure your account:
+
+https://github.com/settings/security
+
+You can also review recent activity:
+https://github.com/settings/security/analysis
+
+Thanks,
+The GitHub Team
+    </div>
+  </div>
+
+  <!-- Legitimate Test Email 2 -->
+  <div class="email">
+    <div class="email-header">
+      <span class="label label-safe">Expected: SAFE</span>
+      <div class="email-meta">
+        <div class="email-subject">Your order #123-4567890-1234567 has shipped</div>
+        <div class="email-sender">Amazon.com <shipment-tracking@amazon.com></div>
+      </div>
+    </div>
+    <div class="email-body">
+Hello,
+
+Your Amazon order has shipped!
+
+Order #123-4567890-1234567
+Shipped: August 18, 2026
+Delivery estimate: August 20, 2026
+
+Track your package:
+https://www.amazon.com/track-package?orderId=123-4567890-1234567
+
+Order details:
+- Wireless Headphones - $79.99
+- USB-C Cable - $12.99
+
+Total: $92.98
+
+If you have any questions, visit:
+https://www.amazon.com/help
+
+Thank you for shopping with Amazon!
+    </div>
+  </div>
+
+  <!-- Uncertain/Borderline Test Email -->
+  <div class="email">
+    <div class="email-header">
+      <span class="label label-uncertain">Expected: UNCERTAIN</span>
+      <div class="email-meta">
+        <div class="email-subject">Update your account information</div>
+        <div class="email-sender">Support Team <support@company-services.net></div>
+      </div>
+    </div>
+    <div class="email-body">
+Dear User,
+
+We need you to update your account information to continue using our services.
+
+Please log in and verify your details:
+https://company-services.net/account/verify
+
+If you have questions, contact support@company-services.net
+
+Best regards,
+Support Team
+    </div>
+  </div>
+
+  <hr style="margin: 40px 0;">
+  
+  <h2>Test Checklist</h2>
+  <ul>
+    <li>☐ Phishing email 1 → Red badge (⚠️ Phishing)</li>
+    <li>☐ Phishing email 2 → Red badge (⚠️ Phishing)</li>
+    <li>☐ Safe email 1 → Green badge (🛡️ Safe)</li>
+    <li>☐ Safe email 2 → Green badge (🛡️ Safe)</li>
+    <li>☐ Borderline email → Amber badge (❓ Uncertain)</li>
+    <li>☐ Hover badge → Tooltip with confidence & reasons</li>
+    <li>☐ Suspicious links → Red wavy underline + ⚠️ indicator</li>
+    <li>☐ Popup opens → Shows model status & settings</li>
+    <li>☐ Settings persist after reload</li>
+  </ul>
+</body>
+</html>

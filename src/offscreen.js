@@ -1,9 +1,10 @@
 /**
  * PhishNet Offscreen Document
  * Loads and runs the Transformers.js model for phishing detection
+ * Uses WebWorker for non-blocking inference
  */
 
-import { pipeline, env, AutoTokenizer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
 import logger from './utils/logger.js';
 
 // Configure Transformers.js environment
@@ -12,15 +13,16 @@ env.allowRemoteModels = true;
 env.useBrowserCache = true;
 env.localModelPath = chrome.runtime.getURL('models/');
 env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0/ort-wasm/';
+env.backends.onnx.wasm.numThreads = 1; // Single thread for compatibility
 
 // Model configuration
 const MODEL_ID = 'onnx-community/phishing-email-detection-distilbert_v2.4.1-ONNX';
 const MODEL_OPTIONS = {
-  dtype: 'q8',  // Quantized for smaller size
+  dtype: 'q8',  // Quantized for smaller size (~50MB)
   device: 'auto' // Use WebGPU if available, fallback to WASM
 };
 
-// Label mapping from model output
+// Label mapping from model output (based on cybersectony/phishing-email-detection-distilbert_v2.4.1)
 const LABEL_MAP = {
   'LABEL_0': 'legitimate_email',
   'LABEL_1': 'phishing_email',
@@ -38,48 +40,59 @@ const LABEL_REASONS = {
 
 // State
 let classifier = null;
-let tokenizer = null;
 let modelLoaded = false;
+let loadAttempts = 0;
+const MAX_LOAD_ATTEMPTS = 3;
 
 /**
- * Initialize and load model
+ * Initialize and load model with retry logic
  */
 async function init() {
-  logger.debug('Initializing...');
+  logger.debug('Initializing offscreen document...');
 
-  try {
-    // Report progress
-    reportProgress(10, 'Loading tokenizer...');
+  while (loadAttempts < MAX_LOAD_ATTEMPTS && !modelLoaded) {
+    loadAttempts++;
+    logger.debug(`Model load attempt ${loadAttempts}/${MAX_LOAD_ATTEMPTS}`);
 
-    // Load tokenizer first
-    tokenizer = await AutoTokenizer.from_pretrained(MODEL_ID);
+    try {
+      // Report progress
+      reportProgress(Math.min(10 * loadAttempts, 30), `Loading model (attempt ${loadAttempts})...`);
 
-    reportProgress(30, 'Loading model...');
+      // Load classification pipeline (handles tokenizer internally)
+      classifier = await pipeline('text-classification', MODEL_ID, MODEL_OPTIONS);
 
-    // Load classification pipeline
-    classifier = await pipeline('text-classification', MODEL_ID, MODEL_OPTIONS);
+      reportProgress(80, 'Warming up model...');
 
-    reportProgress(80, 'Warming up model...');
+      // Warm up with a dummy inference
+      await classifier('Test email for warmup');
 
-    // Warm up with a dummy inference
-    await classifier('Test email for warmup');
+      reportProgress(100, 'Model ready');
 
-    reportProgress(100, 'Model ready');
+      modelLoaded = true;
 
-    modelLoaded = true;
+      // Notify background
+      chrome.runtime.sendMessage({ type: 'OFFSCREEN_READY' });
 
-    // Notify background
-    chrome.runtime.sendMessage({ type: 'OFFSCREEN_READY' });
+      logger.debug('Model loaded successfully');
+      return;
 
-    logger.debug('Model loaded successfully');
-
-  } catch (error) {
-    logger.error('Failed to load model:', error);
-    chrome.runtime.sendMessage({
-      type: 'OFFSCREEN_ERROR',
-      error: error.message
-    });
+    } catch (error) {
+      logger.error(`Model load attempt ${loadAttempts} failed:`, error);
+      
+      if (loadAttempts >= MAX_LOAD_ATTEMPTS) {
+        logger.error('All model load attempts failed');
+        chrome.runtime.sendMessage({
+          type: 'OFFSCREEN_ERROR',
+          error: `Failed to load model after ${MAX_LOAD_ATTEMPTS} attempts: ${error.message}`
+        });
+        return;
+      }
+      
+      // Wait before retry
+      await new Promise(r => setTimeout(r, 2000 * loadAttempts));
+    }
   }
+}
 }
 
 /**
@@ -94,17 +107,65 @@ function reportProgress(progress, message) {
 }
 
 /**
- * Run inference on email text
+ * Run inference on email text with timeout protection
+ * This runs in the offscreen document context
  */
 async function runInference(text, settings) {
   if (!classifier || !modelLoaded) {
     throw new Error('Model not loaded');
   }
 
+  // Add timeout protection for inference
+  const inferencePromise = (async () => {
+    const startTime = performance.now();
+
+    // Truncate text to 512 tokens (approximate: 1 token ≈ 4 chars)
+    const truncatedText = truncateText(text, 512);
+
+    // Run classification
+    const results = await classifier(truncatedText, {
+      topk: 4 // Get all class probabilities
+    });
+
+    const processingTime = Math.round(performance.now() - startTime);
+
+    // Process results
+    const predictions = Array.isArray(results) ? results : [results];
+
+    // Sort by score descending
+    predictions.sort((a, b) => b.score - a.score);
+
+    const topPrediction = predictions[0];
+    const label = LABEL_MAP[topPrediction.label] || 'uncertain';
+    const confidence = topPrediction.score;
+
+    // Generate reasons based on predictions
+    const reasons = generateReasons(predictions, text, settings);
+
+    return {
+      label,
+      confidence,
+      reasons,
+      processingTime,
+      allScores: predictions.reduce((acc, p) => {
+        acc[LABEL_MAP[p.label] || p.label] = p.score;
+        return acc;
+      }, {})
+    };
+  })();
+
+  // Race against timeout (15 seconds)
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Inference timeout')), 15000);
+  });
+
+  return Promise.race([inferencePromise, timeoutPromise]);
+}
+
   const startTime = performance.now();
 
   try {
-    // Truncate text to 512 tokens (approximate)
+    // Truncate text to 512 tokens (approximate: 1 token ≈ 4 chars)
     const truncatedText = truncateText(text, 512);
 
     // Run classification

@@ -5,6 +5,14 @@
 
 import { getSelectorsForCurrentSite, EMAIL_SELECTORS, UTILITY_SELECTORS } from './selectors.js';
 import logger from './utils/logger.js';
+import { heuristicDetect } from './utils/heuristic-detector.js';
+import { 
+  safeQuery, 
+  safeText, 
+  safeAttr, 
+  generateId,
+  safeSendMessage 
+} from './utils/error-boundary.js';
 
 // State
 let currentSelectors = null;
@@ -121,19 +129,46 @@ async function scanEmail(element, emailId) {
 
     lastScannedEmailId = emailId;
 
-    // Send to background for classification
-    const response = await chrome.runtime.sendMessage({
-      type: 'SCAN_EMAIL',
-      payload: {
-        ...emailContent,
-        url: window.location.href,
-        emailId
-      }
-    });
+    // Get current settings for threshold
+    let settings = { sensitivityThreshold: 0.7, highlightLinks: true };
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
+      if (response) settings = response;
+    } catch (e) {
+      logger.debug('Using default settings');
+    }
 
-    if (response && response.success) {
-      injectBadge(element, response.result);
-      highlightLinks(element, response.result);
+    // Send to background for ML classification
+    let mlResult = null;
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'SCAN_EMAIL',
+        payload: {
+          ...emailContent,
+          url: window.location.href,
+          emailId
+        }
+      });
+
+      if (response && response.success) {
+        mlResult = response.result;
+      }
+    } catch (mlError) {
+      logger.debug('ML classification unavailable, using heuristic fallback');
+    }
+
+    // Use ML result if available, otherwise fallback to heuristic
+    const result = mlResult || heuristicDetect(emailContent, emailContent.links);
+
+    // Apply sensitivity threshold
+    if (result.confidence < settings.sensitivityThreshold && result.label === 'phishing_email') {
+      result.label = 'uncertain';
+      result.reasons.unshift(`Below sensitivity threshold (${Math.round(settings.sensitivityThreshold * 100)}%)`);
+    }
+
+    injectBadge(element, result);
+    if (settings.highlightLinks) {
+      highlightLinks(element, result);
     }
   } catch (error) {
     logger.error('Scan failed:', error);
@@ -141,64 +176,93 @@ async function scanEmail(element, emailId) {
 }
 
 /**
- * Extract email content from DOM element
+ * Extract email content from DOM element with robust fallbacks
  */
 function extractEmailContent(element) {
   const selectors = currentSelectors.selectors;
 
-  // Extract subject
+  // Extract subject with multiple fallbacks
   let subject = '';
-  const subjectEl = element.querySelector(selectors.subject) ||
-                    element.querySelector(selectors.subjectAlt) ||
-                    element.querySelector(selectors.subjectFallback);
-  if (subjectEl) subject = subjectEl.textContent.trim();
+  const subjectSelectors = [
+    selectors.subject,
+    selectors.subjectAlt,
+    selectors.subjectFallback,
+    'h2', 'h3', '[role="heading"]',
+    '[data-thread-id] h2', '[data-thread-id] h3'
+  ];
+  const subjectEl = safeQuery(element, subjectSelectors, 'Subject');
+  subject = safeText(subjectEl);
 
-  // Extract sender
+  // Extract sender with multiple fallbacks
   let senderName = '', senderEmail = '', senderDomain = '';
-  const senderEl = element.querySelector(selectors.sender);
-  const senderEmailEl = element.querySelector(selectors.senderEmail) ||
-                        element.querySelector(selectors.senderFallback);
-
-  if (senderEl) senderName = senderEl.textContent.trim();
-  if (senderEmailEl) {
-    senderEmail = senderEmailEl.textContent.trim();
-    senderEmail = senderEmail.replace(/[<>"]/g, '').trim();
-    const match = senderEmail.match(/@([^@]+)$/);
-    if (match) senderDomain = match[1].toLowerCase();
-  }
-
-  // Fallback: try to get sender from combined element
-  if (!senderEmail && senderEl) {
-    const emailAttr = senderEl.getAttribute('email');
+  const senderSelectors = [
+    selectors.sender,
+    selectors.senderName,
+    selectors.senderEmail,
+    selectors.senderFallback,
+    '[email]', '[data-email]', '.sender', '.from'
+  ];
+  const senderEl = safeQuery(element, senderSelectors, 'Sender');
+  if (senderEl) {
+    senderName = safeText(senderEl);
+    const emailAttr = safeAttr(senderEl, 'email') || safeAttr(senderEl, 'data-email');
     if (emailAttr) {
-      senderEmail = emailAttr;
+      senderEmail = emailAttr.replace(/[<>"]/g, '').trim();
+    } else if (senderName.includes('@')) {
+      senderEmail = senderName.replace(/[<>"]/g, '').trim();
+    }
+    if (senderEmail) {
       const match = senderEmail.match(/@([^@]+)$/);
       if (match) senderDomain = match[1].toLowerCase();
     }
   }
 
-  // Extract body text
+  // Extract body text with comprehensive fallbacks
   let bodyText = '';
-  const bodyEl = element.querySelector(selectors.messageBody) ||
-                 element.querySelector(selectors.messageBodyAlt) ||
-                 element.querySelector(selectors.messageBodyFallback);
+  const bodySelectors = [
+    selectors.messageBody,
+    selectors.messageBodyAlt,
+    selectors.messageBodyFallback,
+    '[data-message-id] .ii.gt',
+    '[data-message-id] .a3s',
+    '[data-testid="message-body-content"]',
+    '[data-testid="message-body"]',
+    '.elementToProof',
+    '.allowTextSelection',
+    '.message-body',
+    '.email-body',
+    '[role="main"]',
+    'article'
+  ];
 
-  if (bodyEl) {
+  const bodyEl = safeQuery(element, bodySelectors, 'Body');
+
+  // Ultimate fallback: use the element itself
+  const targetEl = bodyEl || element;
+
+  if (targetEl) {
     // Clone to avoid modifying original
-    const clone = bodyEl.cloneNode(true);
+    const clone = targetEl.cloneNode(true);
 
     // Remove skip elements
     UTILITY_SELECTORS.skipElements.forEach(skipSel => {
       clone.querySelectorAll(skipSel).forEach(el => el.remove());
     });
 
-    // Get text content
-    bodyText = clone.textContent.trim();
+    // Also remove common noise elements
+    const noiseSelectors = [
+      'script', 'style', 'noscript',
+      '.ad', '.ads', '.advertisement',
+      '[role="banner"]', '[role="navigation"]',
+      'header', 'footer', 'nav',
+      '.signature', '.sig', '[data-smartmail="signature"]'
+    ];
+    noiseSelectors.forEach(sel => {
+      clone.querySelectorAll(sel).forEach(el => el.remove());
+    });
 
-    // Limit length
-    if (bodyText.length > 3000) {
-      bodyText = bodyText.slice(0, 3000);
-    }
+    // Get text content
+    bodyText = safeText(clone, 3000);
   }
 
   // Extract links
@@ -371,7 +435,7 @@ function generateTooltip(result) {
 }
 
 /**
- * Highlight suspicious links
+ * Highlight suspicious links with enhanced tooltip
  */
 function highlightLinks(element, result) {
   const selectors = currentSelectors.selectors;
@@ -396,6 +460,13 @@ function highlightLinks(element, result) {
         warning.style.marginLeft = '4px';
         warning.style.fontSize = '0.8em';
         linkEl.appendChild(warning);
+      }
+
+      // Add tooltip with specific reason
+      const linkReason = result.links?.find(l => l.href === href);
+      if (linkReason) {
+        linkEl.setAttribute('data-phishnet-tooltip', `Suspicious link: ${linkReason.text || 'Unknown reason'}`);
+        linkEl.classList.add('phishnet-tooltip-trigger');
       }
     }
   });
@@ -475,6 +546,10 @@ function handleMessage(message, sender, sendResponse) {
     case 'MODEL_STATUS':
       // Update UI based on model status
       updateModelStatusUI(message.payload);
+      break;
+
+    case 'SETTINGS_UPDATE':
+      // Settings updated from popup
       break;
   }
 }

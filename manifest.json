@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "PhishNet",
+  "version": "1.0.0",
+  "description": "Privacy-first phishing email detector using on-device AI. Works on Gmail & Outlook.",
+  "icons": {
+    "16": "public/icons/icon-16.png",
+    "32": "public/icons/icon-32.png",
+    "48": "public/icons/icon-48.png",
+    "128": "public/icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "PhishNet - Phishing Detector",
+    "default_icon": {
+      "16": "public/icons/icon-16.png",
+      "32": "public/icons/icon-32.png",
+      "48": "public/icons/icon-48.png",
+      "128": "public/icons/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [{
+    "matches": [
+      "https://mail.google.com/*",
+      "https://outlook.live.com/*",
+      "https://outlook.office.com/*",
+      "https://outlook.office365.com/*"
+    ],
+    "js": ["src/content.js"],
+    "css": ["src/styles.css"],
+    "run_at": "document_idle",
+    "all_frames": false
+  }],
+  "offscreen": {
+    "reasons": ["LOCAL_STORAGE", "WORKERS"],
+    "pages": ["public/offscreen.html"]
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://outlook.live.com/*",
+    "https://outlook.office.com/*",
+    "https://outlook.office365.com/*",
+    "https://cdn.jsdelivr.net/npm/@huggingface/transformers/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; object-src 'self'; worker-src 'self' blob:"
+  },
+  "web_accessible_resources": [{
+    "resources": ["public/icons/*"],
+    "matches": ["<all_urls>"]
+  }]
+}

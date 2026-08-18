@@ -1,0 +1,284 @@
+/**
+ * PhishNet Injected Styles
+ * Styles for badges, tooltips, and link highlighting in Gmail/Outlook
+ */
+
+/* Badge Styles */
+.phishnet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  margin-left: 8px;
+  vertical-align: middle;
+  cursor: help;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.phishnet-badge:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+/* Safe badge */
+.phishnet-badge--safe {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.phishnet-badge--safe::before {
+  content: '🛡️';
+  font-size: 10px;
+}
+
+/* Phishing badge */
+.phishnet-badge--phishing {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  animation: phishnet-pulse 2s ease-in-out infinite;
+}
+
+.phishnet-badge--phishing::before {
+  content: '⚠️';
+  font-size: 10px;
+}
+
+@keyframes phishnet-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+/* Uncertain badge */
+.phishnet-badge--uncertain {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.phishnet-badge--uncertain::before {
+  content: '❓';
+  font-size: 10px;
+}
+
+/* Tooltip */
+.phishnet-tooltip-trigger {
+  position: relative;
+}
+
+.phishnet-tooltip-trigger:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  max-width: 300px;
+  white-space: pre-wrap;
+  z-index: 2147483647;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 4px 6px rgba(0, 0, 0, 0.1);
+  line-height: 1.5;
+  text-align: left;
+  pointer-events: none;
+}
+
+.phishnet-tooltip-trigger:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+/* Link Highlighting */
+.phishnet-link--suspicious {
+  position: relative;
+  text-decoration: underline wavy #ef4444 !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 2px !important;
+}
+
+.phishnet-link--suspicious::after {
+  content: ' ⚠️';
+  font-size: 0.75em;
+  vertical-align: super;
+  margin-left: 2px;
+  opacity: 0.8;
+}
+
+.phishnet-link--suspicious:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 2px;
+}
+
+/* Warning indicator for links */
+.phishnet-link-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  font-size: 9px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  animation: phishnet-bounce 1s ease-in-out infinite;
+}
+
+@keyframes phishnet-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Ensure badge doesn't break layout in tight spaces */
+.phishnet-badge {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .phishnet-badge--safe {
+    background: #14532d;
+    color: #86efac;
+    border-color: #166534;
+  }
+
+  .phishnet-badge--phishing {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
+  }
+
+  .phishnet-badge--uncertain {
+    background: #78350f;
+    color: #fde68a;
+    border-color: #92400e;
+  }
+
+  .phishnet-tooltip-trigger:hover::after {
+    background: #f3f4f6;
+    color: #111827;
+  }
+
+  .phishnet-tooltip-trigger:hover::before {
+    border-top-color: #f3f4f6;
+  }
+}
+
+/* Gmail-specific adjustments */
+.phishnet-badge {
+  /* Gmail uses compact spacing */
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 10.5px;
+}
+
+/* Outlook-specific adjustments */
+[data-outlook] .phishnet-badge {
+  margin-left: 8px;
+  padding: 3px 10px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .phishnet-badge {
+    border-width: 2px;
+  }
+
+  .phishnet-link--suspicious {
+    text-decoration: underline solid #ef4444 !important;
+    text-decoration-thickness: 3px !important;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .phishnet-badge--phishing {
+    animation: none;
+  }
+
+  .phishnet-link-warning {
+    animation: none;
+  }
+
+  .phishnet-badge {
+    transition: none;
+  }
+}
+
+/* Print styles - hide badges */
+@media print {
+  .phishnet-badge,
+  .phishnet-link--suspicious::after,
+  .phishnet-link-warning {
+    display: none !important;
+  }
+
+  .phishnet-link--suspicious {
+    text-decoration: none !important;
+  }
+}
+
+/* RTL support */
+[dir="rtl"] .phishnet-badge {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+[dir="rtl"] .phishnet-tooltip-trigger:hover::after {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
+}
+
+[dir="rtl"] .phishnet-tooltip-trigger:hover::before {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
+}
+
+/* Focus styles for accessibility */
+.phishnet-badge:focus {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+/* Ensure badge is above other content */
+.phishnet-badge {
+  z-index: 1000;
+  position: relative;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .phishnet-badge {
+    padding: 2px 6px;
+    font-size: 10px;
+    margin-left: 4px;
+  }
+
+  .phishnet-tooltip-trigger:hover::after {
+    max-width: 250px;
+    font-size: 10px;
+    padding: 8px 10px;
+  }
+}

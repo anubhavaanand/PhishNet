@@ -74,8 +74,7 @@ jobs:
             echo "❌ Found eval() or new Function()"
             exit 1
           fi
-          # Validate MV3 extension_pages CSP: only 'self', wasm-unsafe-eval, wasm-eval
-          # allowed in script-src; no remote URLs; no blob: in worker-src
+          # Validate MV3 extension_pages CSP: only 'self', wasm-unsafe-eval, wasm-eval allowed
           node -e "
             const fs = require('fs');
             const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
@@ -87,15 +86,15 @@ jobs:
               'worker-src': [S('self'), S('none')]
             };
             let errors = [];
-            for (const d of csp.split(';').map(x => x.trim().split(/\\s+/)).filter(x => x.length)) {
+            for (const d of csp.split(';').map(x => x.trim().split(/\s+/)).filter(x => x.length)) {
               const [name, ...vals] = d;
               if (!(name in allowed)) { errors.push('Unknown directive: ' + name); continue; }
               for (const v of vals) {
-                if (/^https?:\\/\\//.test(v)) errors.push('Remote URL in ' + name + ': ' + v);
+                if (/^https?:\/\//.test(v)) errors.push('Remote URL in ' + name + ': ' + v);
                 else if (!allowed[name].includes(v)) errors.push('Disallowed value ' + v + ' in ' + name);
               }
             }
-            if (errors.length) { console.error('❌ MV3 CSP violation:\\n - ' + errors.join('\\n - ')); process.exit(1); }
+            if (errors.length) { console.error('❌ MV3 CSP violation:\n - ' + errors.join('\n - ')); process.exit(1); }
             console.log('✅ MV3 CSP compliant: ' + csp);
           "
           echo "✅ CSP compliant"
@@ -174,8 +173,8 @@ jobs:
               process.exit(1);
             }
             
-            // Check offscreen
-            if (!fs.existsSync(manifest.offscreen.pages[0])) {
+            // Check offscreen HTML page
+            if (!fs.existsSync('public/offscreen.html')) {
               console.error('Missing offscreen page');
               process.exit(1);
             }
@@ -236,7 +235,11 @@ jobs:
             manifest.json \
             src/ \
             public/ \
-            -x "*.git*" "node_modules/*" "doc/*" "*.md" ".gitignore" ".DS_Store" "generate_*" ".github/*" "tests/*"
+            vendor/ \
+            LICENSE \
+            PRIVACY_POLICY.md \
+            README.md \
+            -x "*.git*" "node_modules/*" "doc/*" ".gitignore" ".DS_Store" "generate_*" ".github/*" "tests/*"
 
       - name: Verify zip contents
         run: |

@@ -74,6 +74,30 @@ jobs:
             echo "❌ Found eval() or new Function()"
             exit 1
           fi
+          # Validate MV3 extension_pages CSP: only 'self', wasm-unsafe-eval, wasm-eval
+          # allowed in script-src; no remote URLs; no blob: in worker-src
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            const csp = m.content_security_policy.extension_pages;
+            const S = (s) => \"'\" + s + \"'\";
+            const allowed = {
+              'script-src': [S('self'), S('wasm-unsafe-eval'), S('wasm-eval'), S('inline-speculation-rules'), S('none')],
+              'object-src': [S('self'), S('none')],
+              'worker-src': [S('self'), S('none')]
+            };
+            let errors = [];
+            for (const d of csp.split(';').map(x => x.trim().split(/\\s+/)).filter(x => x.length)) {
+              const [name, ...vals] = d;
+              if (!(name in allowed)) { errors.push('Unknown directive: ' + name); continue; }
+              for (const v of vals) {
+                if (/^https?:\\/\\//.test(v)) errors.push('Remote URL in ' + name + ': ' + v);
+                else if (!allowed[name].includes(v)) errors.push('Disallowed value ' + v + ' in ' + name);
+              }
+            }
+            if (errors.length) { console.error('❌ MV3 CSP violation:\\n - ' + errors.join('\\n - ')); process.exit(1); }
+            console.log('✅ MV3 CSP compliant: ' + csp);
+          "
           echo "✅ CSP compliant"
 
   validate:

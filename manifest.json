@@ -40,10 +40,6 @@
     "run_at": "document_idle",
     "all_frames": false
   }],
-  "offscreen": {
-    "reasons": ["LOCAL_STORAGE", "WORKERS"],
-    "pages": ["public/offscreen.html"]
-  },
   "permissions": [
     "activeTab",
     "scripting",
@@ -55,13 +51,14 @@
     "https://outlook.live.com/*",
     "https://outlook.office.com/*",
     "https://outlook.office365.com/*",
-    "https://huggingface.co/*"
+    "https://huggingface.co/*",
+    "https://*.huggingface.co/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; worker-src 'self' blob:"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
   "web_accessible_resources": [{
-    "resources": ["public/icons/*"],
+    "resources": ["public/icons/*", "vendor/ort-wasm/*"],
     "matches": ["<all_urls>"]
   }]
 }

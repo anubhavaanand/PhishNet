@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   lint:
-    name: Lint
+    name: Lint & Syntax Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,12 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: |
-          # Only for icon generation / dev tools
-          npm ci || true
 
       - name: Check manifest.json validity
         run: |
@@ -47,13 +41,25 @@ jobs:
             console.log('✅ Manifest valid');
           "
 
+      - name: Check JavaScript syntax
+        run: |
+          for f in src/background.js src/offscreen.js src/popup.js src/utils/logger.js; do
+            echo "Checking module $f..."
+            node --check --input-type=module < "$f" || exit 1
+          done
+          for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js tests/unit.test.js; do
+            echo "Checking script $f..."
+            node --check "$f" || exit 1
+          done
+          echo "✅ All JavaScript files have valid syntax"
+
       - name: Check for console.log in production code
         run: |
-          if grep -r "console\.log" src/ --include="*.js" | grep -v "console\.error\|console\.warn"; then
-            echo "❌ Found console.log in production code"
+          if grep -r "console\.log" src/ --include="*.js" | grep -v "console\.error\|console\.warn\|IS_DEBUG"; then
+            echo "❌ Found raw console.log in production code"
             exit 1
           else
-            echo "✅ No console.log in production code"
+            echo "✅ No unshielded console.log in production code"
           fi
 
       - name: Check CSP compliance (no inline scripts)
@@ -88,6 +94,9 @@ jobs:
             "src/popup.js"
             "src/selectors.js"
             "src/styles.css"
+            "src/utils/logger.js"
+            "src/utils/error-boundary.js"
+            "src/utils/heuristic-detector.js"
             "public/offscreen.html"
             "public/icons/icon-16.png"
             "public/icons/icon-32.png"
@@ -158,7 +167,6 @@ jobs:
 
       - name: Check icon dimensions
         run: |
-          # Quick size check using file command
           for size in 16 32 48 128; do
             file "public/icons/icon-${size}.png" | grep -q "${size} x ${size}" || {
               echo "❌ Icon ${size}px has wrong dimensions"
@@ -167,10 +175,26 @@ jobs:
           done
           echo "✅ All icons have correct dimensions"
 
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Unit Tests
+        run: |
+          node tests/unit.test.js
+
   package:
     name: Package Extension
     runs-on: ubuntu-latest
-    needs: [lint, validate]
+    needs: [lint, validate, test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
@@ -188,7 +212,7 @@ jobs:
             manifest.json \
             src/ \
             public/ \
-            -x "*.git*" "node_modules/*" "doc/*" "*.md" ".gitignore" ".DS_Store" "generate_*" ".github/*"
+            -x "*.git*" "node_modules/*" "doc/*" "*.md" ".gitignore" ".DS_Store" "generate_*" ".github/*" "tests/*"
 
       - name: Verify zip contents
         run: |
@@ -200,26 +224,3 @@ jobs:
           name: phishnet-extension
           path: "phishnet-v${{ steps.version.outputs.version }}.zip"
           retention-days: 30
-
-  test:
-    name: Test (Placeholder)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Playwright
-        run: |
-          npm init -y
-          npm install playwright
-          npx playwright install chromium
-
-      - name: Run smoke test (placeholder)
-        run: |
-          echo "⚠️ E2E tests not yet implemented"
-          echo "TODO: Add Playwright tests for:"
-          echo "  - Extension loads without errors"
-          echo "  - Content script injects on Gmail/Outlook"
-          echo "  - Badge appears on test email"
-          echo "  - Popup opens and shows status"
-          exit 0

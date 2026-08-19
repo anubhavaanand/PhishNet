@@ -1,6 +1,6 @@
 /**
  * PhishNet Popup Script
- * Handles UI interactions and communicates with background
+ * Handles UI interactions and communicates with background worker
  */
 
 import logger from './utils/logger.js';
@@ -15,7 +15,7 @@ const scanButton = document.getElementById('scanButton');
 const scanButtonText = document.getElementById('scanButtonText');
 const result = document.getElementById('result');
 const resultIcon = document.getElementById('resultIcon');
-const resultLabel = document.getElementById('ResultLabel');
+const resultLabel = document.getElementById('resultLabel');
 const resultConfidence = document.getElementById('resultConfidence');
 const resultReasons = document.getElementById('resultReasons');
 const errorMessage = document.getElementById('errorMessage');
@@ -41,15 +41,13 @@ let lastScanResult = null;
  * Initialize popup
  */
 async function init() {
-  // Load current status and settings
   await refreshStatus();
   await loadSettings();
 
-  // Set up event listeners
   setupEventListeners();
 
   // Periodic status refresh
-  setInterval(refreshStatus, 5000);
+  setInterval(refreshStatus, 4000);
 }
 
 /**
@@ -72,25 +70,23 @@ async function refreshStatus() {
  * Update status UI
  */
 function updateStatusUI(status, progress = 0) {
-  // Update indicator
-  statusIndicator.className = 'status-indicator ' + status;
+  statusIndicator.className = 'status-indicator ' + (status || 'loading');
 
-  // Update labels
   switch (status) {
     case 'loading':
       statusLabel.textContent = 'Loading model...';
-      statusDetail.textContent = progress > 0 ? `${progress}%` : 'Downloading ~50MB model on first use';
+      statusDetail.textContent = progress > 0 ? `${progress}%` : 'Downloading ~50MB model on first use (runs offline once cached)';
       progressBar.classList.add('visible');
       progressFill.style.width = `${progress}%`;
       break;
     case 'ready':
-      statusLabel.textContent = 'Ready';
-      statusDetail.textContent = 'Model loaded - protection active';
+      statusLabel.textContent = 'Protection Active';
+      statusDetail.textContent = 'On-device AI ready (100% private)';
       progressBar.classList.remove('visible');
       break;
     case 'error':
-      statusLabel.textContent = 'Error';
-      statusDetail.textContent = 'Failed to load model';
+      statusLabel.textContent = 'Model Offline';
+      statusDetail.textContent = 'Using heuristic rule fallback';
       progressBar.classList.remove('visible');
       break;
   }
@@ -100,13 +96,8 @@ function updateStatusUI(status, progress = 0) {
  * Update scan button state
  */
 function updateScanButton(status) {
-  const isReady = status === 'ready';
-  scanButton.disabled = !isReady;
-
-  if (isReady) {
-    scanButtonText.textContent = 'Scan Current Email';
-    scanButton.classList.remove('scanning');
-  }
+  // Allow scan even if offline (will use heuristics)
+  scanButton.disabled = false;
 }
 
 /**
@@ -128,31 +119,32 @@ async function loadSettings() {
  * Apply settings to UI controls
  */
 function applySettingsToUI() {
-  settingAutoScan.checked = currentSettings.autoScan;
-  settingHighlightLinks.checked = currentSettings.highlightLinks;
-  settingShowTooltip.checked = currentSettings.showTooltip;
-  thresholdSlider.value = Math.round(currentSettings.sensitivityThreshold * 100);
-  thresholdValue.textContent = `${thresholdSlider.value}%`;
+  if (settingAutoScan) settingAutoScan.checked = !!currentSettings.autoScan;
+  if (settingHighlightLinks) settingHighlightLinks.checked = !!currentSettings.highlightLinks;
+  if (settingShowTooltip) settingShowTooltip.checked = !!currentSettings.showTooltip;
+  if (thresholdSlider && thresholdValue) {
+    const val = Math.round((currentSettings.sensitivityThreshold ?? 0.7) * 100);
+    thresholdSlider.value = val;
+    thresholdValue.textContent = `${val}%`;
+  }
 }
 
 /**
  * Set up event listeners
  */
 function setupEventListeners() {
-  // Scan button
   scanButton.addEventListener('click', handleScanClick);
 
-  // Settings toggles
-  settingAutoScan.addEventListener('change', () => updateSetting('autoScan', settingAutoScan.checked));
-  settingHighlightLinks.addEventListener('change', () => updateSetting('highlightLinks', settingHighlightLinks.checked));
-  settingShowTooltip.addEventListener('change', () => updateSetting('showTooltip', settingShowTooltip.checked));
+  settingAutoScan?.addEventListener('change', () => updateSetting('autoScan', settingAutoScan.checked));
+  settingHighlightLinks?.addEventListener('change', () => updateSetting('highlightLinks', settingHighlightLinks.checked));
+  settingShowTooltip?.addEventListener('change', () => updateSetting('showTooltip', settingShowTooltip.checked));
 
-  // Threshold slider
-  thresholdSlider.addEventListener('input', (e) => {
+  thresholdSlider?.addEventListener('input', (e) => {
     const value = parseInt(e.target.value);
     thresholdValue.textContent = `${value}%`;
   });
-  thresholdSlider.addEventListener('change', (e) => {
+
+  thresholdSlider?.addEventListener('change', (e) => {
     const value = parseInt(e.target.value) / 100;
     updateSetting('sensitivityThreshold', value);
   });
@@ -164,41 +156,39 @@ function setupEventListeners() {
 async function handleScanClick() {
   if (scanButton.disabled) return;
 
-  // Show loading state
   scanButton.disabled = true;
   scanButton.classList.add('scanning');
-  scanButton.innerHTML = '<span class="spinner"></span> Scanning...';
+  scanButtonText.textContent = 'Scanning...';
   hideResult();
   hideError();
 
   try {
     const response = await chrome.runtime.sendMessage({ type: 'SCAN_CURRENT_TAB' });
 
-    if (response.success) {
+    if (response && response.success && response.result) {
       lastScanResult = response.result;
       showResult(response.result);
     } else {
-      showError(response.error || 'Scan failed. Make sure you\'re on Gmail or Outlook.');
+      showError(response?.error || 'No active email found. Open an email in Gmail or Outlook and try again.');
     }
   } catch (error) {
     showError('Scan failed: ' + error.message);
   } finally {
     scanButton.disabled = false;
     scanButton.classList.remove('scanning');
-    scanButton.innerHTML = '<span id="scanButtonText">Scan Current Email</span>';
+    scanButtonText.textContent = 'Scan Current Email';
   }
 }
 
 /**
- * Show scan result
+ * Show scan result safely using DOM methods
  */
 function showResult(scanResult) {
+  if (!scanResult) return;
   lastScanResult = scanResult;
 
-  // Set result styling
   result.className = 'result visible ' + getResultClass(scanResult.label);
 
-  // Update icon and label
   const icons = {
     'phishing_email': '⚠️',
     'phishing_url': '🔗',
@@ -212,20 +202,27 @@ function showResult(scanResult) {
     'phishing_url': 'Phishing Link',
     'legitimate_email': 'Safe Email',
     'legitimate_url': 'Safe Link',
-    'uncertain': 'Uncertain'
+    'uncertain': 'Uncertain / Suspicious'
   };
 
   resultIcon.textContent = icons[scanResult.label] || '❓';
-  resultLabel.textContent = labels[scanResult.label] || 'Unknown';
-  resultConfidence.textContent = `${Math.round(scanResult.confidence * 100)}%`;
+  resultLabel.textContent = labels[scanResult.label] || 'Analyzed';
+  resultConfidence.textContent = `${Math.round((scanResult.confidence || 0) * 100)}%`;
 
-  // Show reasons
+  // Safely populate reasons
+  resultReasons.textContent = '';
   if (scanResult.reasons && scanResult.reasons.length > 0) {
-    resultReasons.innerHTML = scanResult.reasons
-      .map(r => `<div class="result-reason">${escapeHtml(r)}</div>`)
-      .join('');
+    scanResult.reasons.forEach(r => {
+      const reasonDiv = document.createElement('div');
+      reasonDiv.className = 'result-reason';
+      reasonDiv.textContent = r;
+      resultReasons.appendChild(reasonDiv);
+    });
   } else {
-    resultReasons.innerHTML = '<div class="result-reason">No specific reasons available</div>';
+    const reasonDiv = document.createElement('div');
+    reasonDiv.className = 'result-reason';
+    reasonDiv.textContent = 'Standard email patterns observed';
+    resultReasons.appendChild(reasonDiv);
   }
 
   result.style.display = 'block';
@@ -234,7 +231,7 @@ function showResult(scanResult) {
 /**
  * Get CSS class for result
  */
-function getResultClass(label) {
+function getResultClass(label = '') {
   if (label.includes('phishing')) return 'phishing';
   if (label.includes('legitimate')) return 'safe';
   return 'uncertain';
@@ -244,7 +241,7 @@ function getResultClass(label) {
  * Hide result
  */
 function hideResult() {
-  result.classList.remove('visible', 'safe', 'phishing', 'uncertain');
+  result.className = 'result';
   result.style.display = 'none';
 }
 
@@ -254,13 +251,16 @@ function hideResult() {
 function showError(message) {
   errorMessage.textContent = message;
   errorMessage.classList.add('visible');
+  errorMessage.style.display = 'block';
 }
 
 /**
  * Hide error message
  */
 function hideError() {
+  errorMessage.textContent = '';
   errorMessage.classList.remove('visible');
+  errorMessage.style.display = 'none';
 }
 
 /**
@@ -276,18 +276,8 @@ async function updateSetting(key, value) {
     });
   } catch (error) {
     logger.error('Settings update failed:', error);
-    // Revert UI on failure
     loadSettings();
   }
-}
-
-/**
- * Escape HTML for safe display
- */
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 // Initialize when DOM ready

@@ -1,10 +1,9 @@
 /**
  * PhishNet Offscreen Document
  * Loads and runs the Transformers.js model for phishing detection
- * Uses WebWorker for non-blocking inference
  */
 
-import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
+import { pipeline, env } from '../vendor/transformers.min.js';
 import logger from './utils/logger.js';
 
 // Configure Transformers.js environment
@@ -12,8 +11,8 @@ env.allowLocalModels = true;
 env.allowRemoteModels = true;
 env.useBrowserCache = true;
 env.localModelPath = chrome.runtime.getURL('models/');
-env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0/ort-wasm/';
-env.backends.onnx.wasm.numThreads = 1; // Single thread for compatibility
+env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('vendor/ort-wasm/');
+env.backends.onnx.wasm.numThreads = 1; // Single thread for browser compatibility
 
 // Model configuration
 const MODEL_ID = 'onnx-community/phishing-email-detection-distilbert_v2.4.1-ONNX';
@@ -56,23 +55,21 @@ async function init() {
 
     try {
       // Report progress
-      reportProgress(Math.min(10 * loadAttempts, 30), `Loading model (attempt ${loadAttempts})...`);
+      reportProgress(Math.min(15 * loadAttempts, 35), `Loading model (attempt ${loadAttempts})...`);
 
       // Load classification pipeline (handles tokenizer internally)
       classifier = await pipeline('text-classification', MODEL_ID, MODEL_OPTIONS);
 
       reportProgress(80, 'Warming up model...');
 
-      // Warm up with a dummy inference
+      // Warm up with dummy inference
       await classifier('Test email for warmup');
 
       reportProgress(100, 'Model ready');
-
       modelLoaded = true;
 
       // Notify background
       chrome.runtime.sendMessage({ type: 'OFFSCREEN_READY' });
-
       logger.debug('Model loaded successfully');
       return;
 
@@ -93,7 +90,6 @@ async function init() {
     }
   }
 }
-}
 
 /**
  * Report loading progress to background
@@ -103,19 +99,17 @@ function reportProgress(progress, message) {
     type: 'MODEL_LOAD_PROGRESS',
     progress,
     message
-  });
+  }).catch(() => {});
 }
 
 /**
  * Run inference on email text with timeout protection
- * This runs in the offscreen document context
  */
-async function runInference(text, settings) {
+async function runInference(text, settings = {}) {
   if (!classifier || !modelLoaded) {
     throw new Error('Model not loaded');
   }
 
-  // Add timeout protection for inference
   const inferencePromise = (async () => {
     const startTime = performance.now();
 
@@ -162,54 +156,11 @@ async function runInference(text, settings) {
   return Promise.race([inferencePromise, timeoutPromise]);
 }
 
-  const startTime = performance.now();
-
-  try {
-    // Truncate text to 512 tokens (approximate: 1 token ≈ 4 chars)
-    const truncatedText = truncateText(text, 512);
-
-    // Run classification
-    const results = await classifier(truncatedText, {
-      topk: 4 // Get all class probabilities
-    });
-
-    const processingTime = Math.round(performance.now() - startTime);
-
-    // Process results
-    const predictions = Array.isArray(results) ? results : [results];
-
-    // Sort by score descending
-    predictions.sort((a, b) => b.score - a.score);
-
-    const topPrediction = predictions[0];
-    const label = LABEL_MAP[topPrediction.label] || 'uncertain';
-    const confidence = topPrediction.score;
-
-    // Generate reasons based on predictions
-    const reasons = generateReasons(predictions, text, settings);
-
-    return {
-      label,
-      confidence,
-      reasons,
-      processingTime,
-      allScores: predictions.reduce((acc, p) => {
-        acc[LABEL_MAP[p.label] || p.label] = p.score;
-        return acc;
-      }, {})
-    };
-
-  } catch (error) {
-    logger.error('Inference error:', error);
-    throw error;
-  }
-}
-
 /**
  * Truncate text to approximate token limit
  */
 function truncateText(text, maxTokens) {
-  // Rough approximation: 1 token ≈ 4 characters
+  if (!text) return '';
   const maxChars = maxTokens * 4;
   if (text.length <= maxChars) return text;
   return text.slice(0, maxChars);
@@ -218,17 +169,18 @@ function truncateText(text, maxTokens) {
 /**
  * Generate human-readable reasons
  */
-function generateReasons(predictions, text, settings) {
+function generateReasons(predictions, text = '', settings = {}) {
   const reasons = [];
 
   // Top prediction reason
-  const topLabel = LABEL_MAP[predictions[0].label] || 'uncertain';
+  const topLabel = LABEL_MAP[predictions[0]?.label] || 'uncertain';
   if (LABEL_REASONS[topLabel]) {
     reasons.push(LABEL_REASONS[topLabel]);
   }
 
-  // Confidence-based reason
-  if (predictions[0].score < settings.sensitivityThreshold) {
+  // Sensitivity threshold check
+  const threshold = settings.sensitivityThreshold ?? 0.7;
+  if (predictions[0]?.score < threshold) {
     reasons.push('Low confidence - manual review recommended');
   }
 
@@ -239,16 +191,15 @@ function generateReasons(predictions, text, settings) {
     'limited time', 'act now', 'expire', 'password', 'credential'
   ];
 
-  const foundKeywords = phishingKeywords.filter(kw =>
-    text.toLowerCase().includes(kw.toLowerCase())
-  );
+  const lowerText = text.toLowerCase();
+  const foundKeywords = phishingKeywords.filter(kw => lowerText.includes(kw));
 
   if (foundKeywords.length > 0) {
     reasons.push(`Contains urgency keywords: ${foundKeywords.slice(0, 3).join(', ')}`);
   }
 
-  // Check for suspicious links (if present in text)
-  const urlRegex = /https?:\/\/[^\s]+/g;
+  // Check for suspicious links
+  const urlRegex = /https?:\/\/[^\s"'<>]+/g;
   const urls = text.match(urlRegex) || [];
 
   let suspiciousLinks = 0;
@@ -260,19 +211,18 @@ function generateReasons(predictions, text, settings) {
     reasons.push(`${suspiciousLinks} suspicious link(s) detected`);
   }
 
-  // Sender domain mismatch (if detectable)
-  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-  const emails = text.match(emailRegex) || [];
-
-  for (const email of emails) {
-    const domain = email.split('@')[1]?.toLowerCase();
+  // Sender domain analysis
+  const emailRegex = /[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+  let match;
+  while ((match = emailRegex.exec(text)) !== null) {
+    const domain = match[1]?.toLowerCase();
     if (domain && isDomainSuspicious(domain)) {
       reasons.push(`Suspicious sender domain: ${domain}`);
       break;
     }
   }
 
-  return reasons.slice(0, 5); // Limit to 5 reasons
+  return reasons.slice(0, 5);
 }
 
 /**
@@ -284,15 +234,15 @@ function isUrlSuspicious(url) {
     const domain = parsed.hostname.toLowerCase();
 
     // Suspicious TLDs
-    const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club'];
+    const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club', '.work', '.date', '.loan', '.win'];
     for (const tld of suspiciousTlds) {
       if (domain.endsWith(tld)) return true;
     }
 
     // URL shorteners
-    const shorteners = ['bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd'];
+    const shorteners = ['bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd', 'buff.ly', 'cutt.ly'];
     for (const s of shorteners) {
-      if (domain.includes(s)) return true;
+      if (domain === s || domain.endsWith('.' + s)) return true;
     }
 
     // IP address
@@ -304,7 +254,7 @@ function isUrlSuspicious(url) {
     // Suspicious keywords in domain
     const keywords = ['secure', 'verify', 'account', 'login', 'signin', 'update', 'confirm'];
     for (const kw of keywords) {
-      if (domain.includes(kw) && !domain.startsWith(kw + '.')) return true;
+      if (domain.includes(kw) && !domain.startsWith(kw + '.') && !domain.endsWith('.' + kw + '.com')) return true;
     }
 
   } catch (e) {
@@ -318,14 +268,28 @@ function isUrlSuspicious(url) {
  * Check if domain is suspicious
  */
 function isDomainSuspicious(domain) {
-  const suspiciousPatterns = [
-    /^(security|support|admin|noreply|no-reply)@/,
-    /[0-9]{5,}/, // Many numbers
-    /(paypal|amazon|microsoft|apple|google|bank|chase|wells|fargo|citi)\.[a-z]+$/, // Brand in subdomain
-  ];
+  if (!domain) return false;
+  const lowerDomain = domain.toLowerCase();
 
-  for (const pattern of suspiciousPatterns) {
-    if (pattern.test(domain)) return true;
+  // Suspicious TLDs
+  const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club'];
+  for (const tld of suspiciousTlds) {
+    if (lowerDomain.endsWith(tld)) return true;
+  }
+
+  // IP address
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(lowerDomain)) return true;
+
+  // Excessive numbers
+  if (/[0-9]{4,}/.test(lowerDomain)) return true;
+
+  // Brand in domain/subdomain
+  const brands = ['paypal', 'amazon', 'microsoft', 'apple', 'google', 'bank', 'chase', 'wells', 'fargo', 'citi'];
+  for (const brand of brands) {
+    if (lowerDomain.includes(brand)) {
+      const isOfficial = lowerDomain === `${brand}.com` || lowerDomain.endsWith(`.${brand}.com`);
+      if (!isOfficial) return true;
+    }
   }
 
   return false;
@@ -335,22 +299,24 @@ function isDomainSuspicious(domain) {
  * Handle messages from background
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message || !message.type) return;
+
   switch (message.type) {
     case 'RUN_INFERENCE':
-      runInference(message.payload.text, message.settings)
+      runInference(message.payload?.text || '', message.settings || {})
         .then(result => {
           chrome.runtime.sendMessage({
             type: 'INFERENCE_RESULT',
             requestId: message.requestId,
             result
-          });
+          }).catch(() => {});
         })
         .catch(error => {
           chrome.runtime.sendMessage({
             type: 'INFERENCE_ERROR',
             requestId: message.requestId,
             error: error.message
-          });
+          }).catch(() => {});
         });
       sendResponse({ success: true });
       break;

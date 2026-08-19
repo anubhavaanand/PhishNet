@@ -20,4 +20,9 @@ const logger = {
   }
 };
 
+if (typeof globalThis !== 'undefined') {
+  globalThis.PhishNet = globalThis.PhishNet || {};
+  globalThis.PhishNet.logger = logger;
+}
+
 export default logger;

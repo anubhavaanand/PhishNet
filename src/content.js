@@ -1,6 +1,6 @@
 /**
  * PhishNet Content Script
- * Extracts email content from Gmail/Outlook and coordinates scanning with background worker
+ * Extracts email content, attachments, and links from Gmail/Outlook; coordinates scanning and threat modals
  */
 
 (function () {
@@ -17,7 +17,7 @@
   };
 
   const getSelectorsForCurrentSite = PhishNet.getSelectorsForCurrentSite || (() => null);
-  const UTILITY_SELECTORS = PhishNet.UTILITY_SELECTORS || { skipElements: [], suspiciousTlds: [], urlShorteners: [] };
+  const UTILITY_SELECTORS = PhishNet.UTILITY_SELECTORS || { skipElements: [] };
   const heuristicDetect = PhishNet.heuristicDetect || (() => ({ label: 'uncertain', confidence: 0.5, reasons: [] }));
   const safeQuery = PhishNet.safeQuery || ((el, sel) => el ? el.querySelector(Array.isArray(sel) ? sel[0] : sel) : null);
   const safeText = PhishNet.safeText || ((el, max = 3000) => (el?.textContent || '').trim().slice(0, max));
@@ -64,7 +64,6 @@
     }
 
     observer = new MutationObserver(() => {
-      // Check SPA navigation
       const currentUrl = location.href;
       if (currentUrl !== lastUrl) {
         lastUrl = currentUrl;
@@ -120,11 +119,9 @@
     if (!element) return null;
     const selectors = currentSelectors?.selectors;
 
-    // Try standard data attributes
     if (element.dataset?.messageId) return element.dataset.messageId;
     if (element.dataset?.convid) return element.dataset.convid;
 
-    // Fallback: hash/encode sender + subject
     if (selectors) {
       const senderEl = element.querySelector(selectors.sender) || element.querySelector(selectors.senderEmail);
       const subjectEl = element.querySelector(selectors.subject) || element.querySelector(selectors.subjectAlt);
@@ -144,7 +141,6 @@
 
   /**
    * Extract and scan email content
-   * Returns scan result object
    */
   async function scanEmail(element, emailId) {
     if (!element) return null;
@@ -164,8 +160,8 @@
 
       lastScannedEmailId = emailId;
 
-      // Get current settings for threshold
-      let settings = { autoScan: true, sensitivityThreshold: 0.7, highlightLinks: true, showTooltip: true };
+      // Check user settings & whitelist
+      let settings = { autoScan: true, sensitivityThreshold: 0.7, highlightLinks: true, showTooltip: true, whitelist: [] };
       try {
         const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
         if (response) settings = Object.assign(settings, response);
@@ -173,12 +169,36 @@
         logger.debug('Using default settings for scan');
       }
 
-      // If auto-scan is disabled and this wasn't an explicit scan, skip
+      // Check Whitelist
+      const senderEmail = emailContent.sender?.email?.toLowerCase() || '';
+      const senderDomain = emailContent.sender?.domain?.toLowerCase() || '';
+      const whitelist = settings.whitelist || [];
+
+      const isWhitelisted = whitelist.some(item => {
+        const clean = item.toLowerCase().trim();
+        return clean && (clean === senderEmail || clean === senderDomain || senderEmail.endsWith('@' + clean));
+      });
+
+      if (isWhitelisted) {
+        const trustedResult = {
+          label: 'trusted',
+          confidence: 1.0,
+          reasons: ['Sender is on your Trusted Senders whitelist'],
+          processingTime: 0,
+          links: emailContent.links,
+          attachments: emailContent.attachments,
+          emailContent
+        };
+        injectBadge(element, trustedResult);
+        logScanRecord(emailContent, trustedResult);
+        return trustedResult;
+      }
+
       if (!settings.autoScan && !emailId?.startsWith('manual-')) {
         return null;
       }
 
-      // Attempt ML classification via background worker
+      // Run ML classification via background worker
       let mlResult = null;
       try {
         const response = await chrome.runtime.sendMessage({
@@ -197,10 +217,17 @@
         logger.debug('ML inference unavailable, applying heuristic detection');
       }
 
-      // Use ML result if available, otherwise heuristic detection
-      const result = mlResult || heuristicDetect(emailContent, emailContent.links);
+      // Fallback to advanced heuristic detector
+      const heuristicRes = heuristicDetect(emailContent, emailContent.links, emailContent.attachments);
+      const result = mlResult ? Object.assign({}, heuristicRes, mlResult, {
+        links: heuristicRes.links,
+        attachments: heuristicRes.attachments,
+        signals: heuristicRes.signals
+      }) : heuristicRes;
 
-      // Apply sensitivity threshold adjustments
+      result.emailContent = emailContent;
+
+      // Apply sensitivity threshold
       if (result.confidence < settings.sensitivityThreshold && result.label === 'phishing_email') {
         result.label = 'uncertain';
         result.reasons = result.reasons || [];
@@ -212,6 +239,9 @@
       if (settings.highlightLinks) {
         highlightLinks(element, result);
       }
+
+      // Log locally for popup stats
+      logScanRecord(emailContent, result);
 
       return result;
     } catch (error) {
@@ -225,7 +255,39 @@
   }
 
   /**
-   * Extract email content from DOM element with robust fallbacks
+   * Log scan result to chrome.storage.local for dashboard
+   */
+  function logScanRecord(emailContent, result) {
+    if (!chrome.storage?.local) return;
+
+    try {
+      chrome.storage.local.get(['scanHistory', 'scanStats'], (data) => {
+        const history = data.scanHistory || [];
+        const stats = data.scanStats || { total: 0, phishing: 0, safe: 0, uncertain: 0, trusted: 0 };
+
+        stats.total++;
+        if (result.label === 'phishing_email') stats.phishing++;
+        else if (result.label === 'legitimate_email') stats.safe++;
+        else if (result.label === 'trusted') stats.trusted++;
+        else stats.uncertain++;
+
+        const newRecord = {
+          id: Date.now(),
+          subject: (emailContent.subject || 'No Subject').slice(0, 80),
+          sender: emailContent.sender?.email || emailContent.sender?.domain || 'Unknown',
+          label: result.label,
+          confidence: Math.round((result.confidence || 0) * 100),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        const updatedHistory = [newRecord, ...history.slice(0, 19)]; // Keep latest 20
+        chrome.storage.local.set({ scanHistory: updatedHistory, scanStats: stats }).catch(() => {});
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Extract email content and attachments from DOM element
    */
   function extractEmailContent(element) {
     const selectors = currentSelectors?.selectors || {};
@@ -237,7 +299,7 @@
       selectors.subjectFallback,
       'h2[data-thread-id]',
       'h2', 'h3', '[role="heading"]',
-      '[data-thread-id] h2', '[data-thread-id] h3'
+      '[data-thread-id] h2'
     ].filter(Boolean);
     const subjectEl = safeQuery(element.closest('[data-thread-id]') || element.closest('[data-convid]') || document, subjectSelectors, 'Subject');
     const subject = safeText(subjectEl);
@@ -288,7 +350,6 @@
     const bodyEl = safeQuery(element, bodySelectors, 'Body') || element;
 
     if (bodyEl) {
-      // Lightweight clone for stripping ignore nodes
       try {
         const clone = bodyEl.cloneNode(true);
         const skipList = (UTILITY_SELECTORS.skipElements || []).concat([
@@ -308,6 +369,9 @@
     // Extract links
     const links = extractLinks(element);
 
+    // Extract attachments
+    const attachments = extractAttachments(element);
+
     const fullText = `${subject}\n\n${bodyText}`.trim();
 
     return {
@@ -315,6 +379,7 @@
       subject,
       body: bodyText,
       links,
+      attachments,
       sender: {
         name: senderName,
         email: senderEmail,
@@ -324,7 +389,7 @@
   }
 
   /**
-   * Extract all links from email
+   * Extract links from email
    */
   function extractLinks(element) {
     const selectors = currentSelectors?.selectors || {};
@@ -353,12 +418,40 @@
   }
 
   /**
+   * Extract attachment filenames from email
+   */
+  function extractAttachments(element) {
+    const selectors = currentSelectors?.selectors || {};
+    const attachments = [];
+    const attSelectors = [
+      selectors.attachmentNames,
+      selectors.attachments,
+      '[data-testid*="attachment"]',
+      '[download_url]',
+      '.aZo'
+    ].filter(Boolean);
+
+    attSelectors.forEach(sel => {
+      try {
+        element.querySelectorAll(sel).forEach(el => {
+          const name = el.getAttribute('title') || el.getAttribute('download') || el.textContent || '';
+          const clean = name.trim();
+          if (clean && clean.length < 100 && clean.includes('.') && !attachments.includes(clean)) {
+            attachments.push(clean);
+          }
+        });
+      } catch (e) {}
+    });
+
+    return attachments;
+  }
+
+  /**
    * Inject classification badge into email header
    */
   function injectBadge(element, result) {
     if (!element || !result) return;
 
-    // Remove any existing badge
     const existing = element.querySelector('.phishnet-badge');
     if (existing) existing.remove();
 
@@ -377,6 +470,7 @@
       'phishing_url': { icon: '🔗', label: 'Phishing Link', class: 'phishnet-badge--phishing' },
       'legitimate_email': { icon: '🛡️', label: 'Safe', class: 'phishnet-badge--safe' },
       'legitimate_url': { icon: '🔗', label: 'Safe Link', class: 'phishnet-badge--safe' },
+      'trusted': { icon: '⭐', label: 'Trusted Sender', class: 'phishnet-badge--trusted' },
       'uncertain': { icon: '❓', label: 'Uncertain', class: 'phishnet-badge--uncertain' }
     };
 
@@ -386,32 +480,171 @@
     const badge = document.createElement('span');
     badge.className = `phishnet-badge ${config.class} phishnet-tooltip-trigger`;
     badge.setAttribute('data-confidence', String(result.confidence || 0));
-    badge.setAttribute('data-tooltip', generateTooltip(result));
-    badge.setAttribute('title', generateTooltip(result));
+    badge.setAttribute('data-tooltip', `${config.label} (${confidencePct}%) • Click for Threat Details`);
     badge.textContent = `${config.icon} ${config.label} (${confidencePct}%)`;
+
+    // Click to open detailed threat breakdown modal
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      openThreatModal(result);
+    });
 
     insertPoint.parentNode.insertBefore(badge, insertPoint.nextSibling);
     ensureTooltipStyles();
   }
 
   /**
-   * Generate tooltip text
+   * Interactive Threat Breakdown Modal
    */
-  function generateTooltip(result) {
-    const confidencePct = ((result.confidence || 0) * 100).toFixed(1);
-    const lines = [`Confidence: ${confidencePct}%`];
+  function openThreatModal(result) {
+    const existing = document.getElementById('phishnet-modal-root');
+    if (existing) existing.remove();
 
+    const backdrop = document.createElement('div');
+    backdrop.id = 'phishnet-modal-root';
+    backdrop.className = 'phishnet-modal-backdrop';
+
+    const card = document.createElement('div');
+    card.className = 'phishnet-modal-card';
+
+    const header = document.createElement('div');
+    header.className = 'phishnet-modal-header';
+    header.innerHTML = `
+      <div class="phishnet-modal-header-left">
+        <span class="phishnet-modal-logo">🎣</span>
+        <span class="phishnet-modal-title">PhishNet Threat Inspector</span>
+      </div>
+      <button class="phishnet-modal-close" id="phishnetModalCloseBtn">✕</button>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'phishnet-modal-body';
+
+    const confidencePct = Math.round((result.confidence || 0) * 100);
+    const verdictClass = result.label.includes('phishing') ? 'phishing' : (result.label.includes('legitimate') || result.label === 'trusted' ? 'safe' : 'uncertain');
+    const verdictTitle = result.label === 'trusted' ? 'Trusted Sender' : (result.label.includes('phishing') ? 'Phishing Threat Detected' : (result.label.includes('legitimate') ? 'Legitimate Email' : 'Suspicious / Uncertain'));
+    const verdictIcon = result.label === 'trusted' ? '⭐' : (result.label.includes('phishing') ? '⚠️' : (result.label.includes('legitimate') ? '🛡️' : '❓'));
+
+    // Verdict Banner
+    const verdictBanner = document.createElement('div');
+    verdictBanner.className = `phishnet-verdict-banner ${verdictClass}`;
+    verdictBanner.innerHTML = `
+      <div class="phishnet-verdict-label">
+        <span>${verdictIcon}</span>
+        <span>${verdictTitle}</span>
+      </div>
+      <div class="phishnet-verdict-score">${confidencePct}%</div>
+    `;
+    body.appendChild(verdictBanner);
+
+    // Reasons Card
     if (result.reasons && result.reasons.length > 0) {
-      lines.push('');
-      lines.push('Reasons:');
-      result.reasons.forEach(r => lines.push(`• ${r}`));
+      const reasonsCard = document.createElement('div');
+      reasonsCard.className = 'phishnet-reasons-card';
+      reasonsCard.innerHTML = `<div class="phishnet-reasons-title">Detected Indicators:</div>`;
+      result.reasons.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'phishnet-reason-item';
+        item.textContent = r;
+        reasonsCard.appendChild(item);
+      });
+      body.appendChild(reasonsCard);
     }
 
-    if (result.processingTime) {
-      lines.push(`\nProcessed in ${result.processingTime}ms`);
+    // Signals Card
+    if (result.signals) {
+      const signalsGrid = document.createElement('div');
+      signalsGrid.className = 'phishnet-signals-grid';
+      signalsGrid.innerHTML = `
+        <div class="phishnet-signal-card">
+          <span class="phishnet-signal-title">Urgency Panic Score</span>
+          <span class="phishnet-signal-value" style="color: ${result.signals.urgencyScore > 20 ? '#f43f5e' : '#10b981'}">${result.signals.urgencyScore}/40</span>
+        </div>
+        <div class="phishnet-signal-card">
+          <span class="phishnet-signal-title">Domain Trust Risk</span>
+          <span class="phishnet-signal-value" style="color: ${result.signals.senderTrustScore > 20 ? '#f43f5e' : '#10b981'}">${result.signals.senderTrustScore}/45</span>
+        </div>
+        <div class="phishnet-signal-card">
+          <span class="phishnet-signal-title">Link Threat Level</span>
+          <span class="phishnet-signal-value" style="color: ${result.signals.linkRiskScore > 0 ? '#f43f5e' : '#10b981'}">${result.signals.linkRiskScore}/45</span>
+        </div>
+        <div class="phishnet-signal-card">
+          <span class="phishnet-signal-title">Attachment Safety</span>
+          <span class="phishnet-signal-value" style="color: ${result.signals.attachmentRiskScore > 0 ? '#f43f5e' : '#10b981'}">${result.signals.attachmentRiskScore > 0 ? 'Threat Detected' : 'Clean'}</span>
+        </div>
+      `;
+      body.appendChild(signalsGrid);
     }
 
-    return lines.join('\n');
+    // Link Inspector
+    if (result.links && result.links.length > 0) {
+      const linkSection = document.createElement('div');
+      linkSection.className = 'phishnet-reasons-card';
+      linkSection.innerHTML = `<div class="phishnet-reasons-title">Links in Email (${result.links.length}):</div>`;
+      const linkList = document.createElement('div');
+      linkList.className = 'phishnet-link-list';
+
+      result.links.slice(0, 6).forEach(link => {
+        const item = document.createElement('div');
+        item.className = `phishnet-link-item ${link.suspicious ? 'suspicious' : ''}`;
+        item.innerHTML = `
+          <span class="phishnet-link-url" title="${link.href}">${link.href}</span>
+          <span style="font-size: 10px; font-weight: 700; color: ${link.suspicious ? '#f43f5e' : '#10b981'}">
+            ${link.suspicious ? '⚠️ Suspicious' : '✓ Safe'}
+          </span>
+        `;
+        linkList.appendChild(item);
+      });
+      linkSection.appendChild(linkList);
+      body.appendChild(linkSection);
+    }
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'phishnet-modal-footer';
+
+    const senderEmail = result.emailContent?.sender?.email || '';
+    const whitelistBtn = document.createElement('button');
+    whitelistBtn.className = 'phishnet-btn phishnet-btn--secondary';
+    whitelistBtn.textContent = '⭐ Whitelist Sender';
+    whitelistBtn.addEventListener('click', async () => {
+      if (!senderEmail) return;
+      chrome.runtime.sendMessage({
+        type: 'ADD_WHITELIST',
+        entry: senderEmail
+      }).then(() => {
+        whitelistBtn.textContent = '✓ Whitelisted!';
+        whitelistBtn.disabled = true;
+      });
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'phishnet-btn phishnet-btn--primary';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', () => backdrop.remove());
+
+    footer.appendChild(whitelistBtn);
+    footer.appendChild(closeBtn);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(footer);
+    backdrop.appendChild(card);
+
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) backdrop.remove();
+    });
+
+    document.addEventListener('keydown', function escListener(e) {
+      if (e.key === 'Escape') {
+        backdrop.remove();
+        document.removeEventListener('keydown', escListener);
+      }
+    });
+
+    (document.body || document.documentElement).appendChild(backdrop);
+    document.getElementById('phishnetModalCloseBtn')?.addEventListener('click', () => backdrop.remove());
   }
 
   /**
@@ -437,7 +670,6 @@
         const tooltipMsg = `Suspicious link: ${href.slice(0, 80)}`;
         linkEl.setAttribute('data-phishnet-tooltip', tooltipMsg);
         linkEl.setAttribute('data-tooltip', tooltipMsg);
-        linkEl.setAttribute('title', tooltipMsg);
 
         if (!linkEl.querySelector('.phishnet-link-warning')) {
           const warning = document.createElement('span');
@@ -457,9 +689,7 @@
 
     const style = document.createElement('style');
     style.id = 'phishnet-tooltip-styles';
-    style.textContent = `
-      .phishnet-tooltip-trigger { position: relative; cursor: help; }
-    `;
+    style.textContent = `.phishnet-tooltip-trigger { position: relative; }`;
     (document.head || document.documentElement).appendChild(style);
   }
 
@@ -504,7 +734,7 @@
     }
   }
 
-  // Cleanup on page unload
+  // Cleanup on unload
   window.addEventListener('beforeunload', () => {
     if (observer) observer.disconnect();
     clearTimeout(scanDebounceTimer);

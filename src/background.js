@@ -1,6 +1,6 @@
 /**
  * PhishNet Background Service Worker
- * Handles model loading, message routing, and inference coordination
+ * Handles model loading, message routing, inference coordination, and whitelist management
  */
 
 import logger from './utils/logger.js';
@@ -13,7 +13,8 @@ let settings = {
   autoScan: true,
   sensitivityThreshold: 0.7,
   highlightLinks: true,
-  showTooltip: true
+  showTooltip: true,
+  whitelist: ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
 };
 
 const pendingInferenceCallbacks = new Map();
@@ -43,13 +44,15 @@ async function loadSettings() {
       'autoScan',
       'sensitivityThreshold',
       'highlightLinks',
-      'showTooltip'
+      'showTooltip',
+      'whitelist'
     ], (result) => {
       settings = {
         autoScan: result?.autoScan ?? true,
         sensitivityThreshold: result?.sensitivityThreshold ?? 0.7,
         highlightLinks: result?.highlightLinks ?? true,
-        showTooltip: result?.showTooltip ?? true
+        showTooltip: result?.showTooltip ?? true,
+        whitelist: Array.isArray(result?.whitelist) ? result.whitelist : ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
       };
       resolve(settings);
     });
@@ -73,7 +76,6 @@ async function saveSettings(newSettings) {
  */
 async function createOffscreenDocument() {
   try {
-    // Check if offscreen document already exists
     if (chrome.offscreen && typeof chrome.offscreen.hasDocument === 'function') {
       const hasDoc = await chrome.offscreen.hasDocument();
       if (hasDoc) {
@@ -93,7 +95,6 @@ async function createOffscreenDocument() {
 
     if (offscreenDocumentCreated) return;
 
-    // Create new offscreen document
     await chrome.offscreen.createDocument({
       url: chrome.runtime.getURL('public/offscreen.html'),
       reasons: ['LOCAL_STORAGE', 'WORKERS'],
@@ -168,6 +169,31 @@ async function handleIncomingMessage(message, sender) {
       await saveSettings(message.settings);
       broadcastSettingsUpdate();
       return { success: true, settings };
+
+    case 'ADD_WHITELIST': {
+      const entry = (message.entry || '').trim().toLowerCase();
+      if (entry && !settings.whitelist.includes(entry)) {
+        settings.whitelist.push(entry);
+        await saveSettings({ whitelist: settings.whitelist });
+        broadcastSettingsUpdate();
+      }
+      return { success: true, whitelist: settings.whitelist };
+    }
+
+    case 'REMOVE_WHITELIST': {
+      const entry = (message.entry || '').trim().toLowerCase();
+      settings.whitelist = settings.whitelist.filter(w => w !== entry);
+      await saveSettings({ whitelist: settings.whitelist });
+      broadcastSettingsUpdate();
+      return { success: true, whitelist: settings.whitelist };
+    }
+
+    case 'CLEAR_HISTORY': {
+      if (chrome.storage?.local) {
+        await chrome.storage.local.set({ scanHistory: [], scanStats: { total: 0, phishing: 0, safe: 0, uncertain: 0, trusted: 0 } });
+      }
+      return { success: true };
+    }
 
     case 'SCAN_CURRENT_TAB': {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });

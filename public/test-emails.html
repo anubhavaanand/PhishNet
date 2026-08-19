@@ -3,189 +3,341 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PhishNet Test Emails</title>
+  <title>PhishNet - Interactive Test Playground</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
-    .email { border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 24px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .email-header { display: flex; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
-    .email-meta { flex: 1; }
-    .email-subject { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
-    .email-sender { color: #6b7280; font-size: 14px; }
-    .email-body { white-space: pre-wrap; font-size: 14px; color: #374151; }
-    .email-body a { color: #0ea5e9; text-decoration: underline; }
-    .label { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
-    .label-phishing { background: #fee2e2; color: #991b1b; }
-    .label-safe { background: #dcfce7; color: #166534; }
-    .label-uncertain { background: #fef3c7; color: #92400e; }
-    h1 { color: #111827; }
-    .note { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #92400e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      background: #0b0f17;
+      color: #f8fafc;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      font-size: 28px;
+      background: rgba(56, 189, 248, 0.1);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    h1 { font-size: 24px; font-weight: 800; color: #ffffff; }
+    p.subtitle { font-size: 13px; color: #94a3b8; }
+    .playground-card {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .preset-btn {
+      padding: 6px 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preset-btn:hover { background: #334155; color: #ffffff; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: span 2; }
+    label { font-size: 12px; font-weight: 600; color: #cbd5e1; }
+    input, textarea {
+      background: #0b0f17;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: #38bdf8; }
+    .analyze-btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      align-self: flex-start;
+    }
+    .analyze-btn:hover { background: linear-gradient(135deg, #0369a1 0%, #075985 100%); transform: translateY(-1px); }
+    /* Live Results */
+    .live-result {
+      margin-top: 10px;
+      padding: 18px;
+      background: #0b0f17;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .live-result.visible { display: flex; }
+    .verdict-header { display: flex; align-items: center; justify-content: space-between; }
+    .verdict-tag {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .verdict-tag.phishing { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid #e11d48; }
+    .verdict-tag.safe { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #059669; }
+    .verdict-tag.uncertain { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #d97706; }
+    .signals-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .signal-box {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .signal-box .val { font-size: 16px; font-weight: 800; }
+    .signal-box .lbl { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+    .reasons-box {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+    }
+    .reasons-box ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .reasons-box li::before { content: '⚠️ '; }
   </style>
 </head>
 <body>
-  <h1>🎣 PhishNet Test Emails</h1>
-  <p>Open these emails in Gmail/Outlook to test PhishNet detection.</p>
-  
-  <div class="note">
-    <strong>How to test:</strong>
-    1. Load PhishNet extension in Chrome (Developer mode → Load unpacked)
-    2. Open Gmail (<code>mail.google.com</code>) or Outlook (<code>outlook.live.com</code>)
-    3. Compose a new email to yourself with the content below
-    3. Send and open the email
-    4. PhishNet badge should appear near sender/subject
-  </div>
-
-  <!-- Phishing Test Email 1 -->
-  <div class="email">
-    <div class="email-header">
-      <span class="label label-phishing">Expected: PHISHING</span>
-      <div class="email-meta">
-        <div class="email-subject">URGENT: Your Account Will Be Closed!</div>
-        <div class="email-sender">Security Team <security@paypal-verification.tk></div>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">🎣</div>
+        <div>
+          <h1>PhishNet Interactive Playground</h1>
+          <p class="subtitle">Test on-device phishing detection algorithms in real time</p>
+        </div>
       </div>
     </div>
-    <div class="email-body">
-Dear Customer,
 
-We detected unusual activity on your PayPal account. Your account will be permanently suspended within 24 hours unless you verify your identity immediately.
+    <div class="playground-card">
+      <div class="card-title">🧪 Live Email Analyzer</div>
+      <div class="presets-row">
+        <span style="font-size: 12px; color: #94a3b8; align-self: center;">Load Scenario:</span>
+        <button class="preset-btn" onclick="loadScenario('paypal')">⚠️ PayPal Phish</button>
+        <button class="preset-btn" onclick="loadScenario('microsoft')">⚠️ Microsoft Invoice Scam</button>
+        <button class="preset-btn" onclick="loadScenario('homograph')">⚠️ Homograph Lookalike</button>
+        <button class="preset-btn" onclick="loadScenario('github')">🛡️ GitHub Security Alert</button>
+        <button class="preset-btn" onclick="loadScenario('amazon')">🛡️ Amazon Receipt</button>
+      </div>
 
-Click here to verify: http://paypal-security-update.ml/verify?token=abc123
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Sender Email</label>
+          <input type="text" id="inputSender" placeholder="e.g. security@paypal-verification.tk">
+        </div>
+        <div class="form-group">
+          <label>Subject Line</label>
+          <input type="text" id="inputSubject" placeholder="e.g. URGENT: Account Suspension Notice">
+        </div>
+        <div class="form-group full">
+          <label>Email Body</label>
+          <textarea id="inputBody" rows="5" placeholder="Paste email body text here..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Links in Email (one URL per line)</label>
+          <textarea id="inputLinks" rows="2" placeholder="http://paypal-security-update.ml/verify"></textarea>
+        </div>
+      </div>
 
-Please update your password and confirm your credentials to avoid permanent account closure.
+      <button class="analyze-btn" id="analyzeBtn" onclick="runLiveAnalysis()">Run Test Scan</button>
 
-This is urgent - act now to protect your account!
+      <div class="live-result" id="liveResult">
+        <div class="verdict-header">
+          <div class="verdict-tag" id="verdictTag">⚠️ Phishing Threat (95%)</div>
+          <span style="font-size: 12px; color: #94a3b8;" id="verdictTime">Processed in 0ms</span>
+        </div>
 
-Regards,
-PayPal Security Team
-    </div>
-  </div>
+        <div class="signals-row">
+          <div class="signal-box">
+            <div class="val" id="sigUrgency">0/40</div>
+            <div class="lbl">Urgency Score</div>
+          </div>
+          <div class="signal-box">
+            <div class="val" id="sigDomain">0/45</div>
+            <div class="lbl">Domain Risk</div>
+          </div>
+          <div class="signal-box">
+            <div class="val" id="sigLinks">0/45</div>
+            <div class="lbl">Link Risk</div>
+          </div>
+          <div class="signal-box">
+            <div class="val" id="sigTotal">0/100</div>
+            <div class="lbl">Total Threat</div>
+          </div>
+        </div>
 
-  <!-- Phishing Test Email 2 -->
-  <div class="email">
-    <div class="email-header">
-      <span class="label label-phishing">Expected: PHISHING</span>
-      <div class="email-meta">
-        <div class="email-subject">Invoice #INV-2026-0042 - Payment Required</div>
-        <div class="email-sender">Billing Department <billing@microsoft-services.xyz></div>
+        <div class="reasons-box">
+          <strong style="display: block; margin-bottom: 6px; color: #cbd5e1;">Detected Threat Signals:</strong>
+          <ul id="reasonsList"></ul>
+        </div>
       </div>
     </div>
-    <div class="email-body">
-Dear Valued Customer,
-
-Your Microsoft 365 subscription payment has failed. Invoice #INV-2026-0042 for $149.99 is now past due.
-
-To avoid service interruption, please update your payment method immediately:
-
-http://microsoft-billing-update.cf/pay?invoice=INV-2026-0042
-
-If payment is not received within 48 hours, your account will be suspended and all data will be deleted.
-
-Contact support if you have questions.
-
-Microsoft Billing Team
-    </div>
   </div>
 
-  <!-- Legitimate Test Email 1 -->
-  <div class="email">
-    <div class="email-header">
-      <span class="label label-safe">Expected: SAFE</span>
-      <div class="email-meta">
-        <div class="email-subject">Your GitHub Security Alert</div>
-        <div class="email-sender">GitHub <noreply@github.com></div>
-      </div>
-    </div>
-    <div class="email-body">
-Hi there,
+  <!-- Load dependencies for local testing -->
+  <script src="../src/selectors.js"></script>
+  <script src="../src/utils/error-boundary.js"></script>
+  <script src="../src/utils/heuristic-detector.js"></script>
+  <script>
+    const scenarios = {
+      paypal: {
+        sender: 'Security Team <security@paypal-verification.tk>',
+        subject: 'URGENT: Your Account Will Be Closed!',
+        body: 'Dear Customer,\n\nWe detected unusual activity on your PayPal account. Your account will be permanently suspended within 24 hours unless you verify your identity immediately.\n\nClick here to verify: http://paypal-security-update.ml/verify?token=abc123\n\nPlease update your password and credential now.',
+        links: 'http://paypal-security-update.ml/verify?token=abc123'
+      },
+      microsoft: {
+        sender: 'Billing <billing@microsoft-services.xyz>',
+        subject: 'Invoice #INV-2026-0042 - Immediate Payment Required',
+        body: 'Dear Valued Customer,\n\nYour Microsoft 365 subscription payment has failed. Invoice #INV-2026-0042 is past due. To avoid permanent deletion of your data, update your payment details immediately:\n\nhttp://microsoft-billing-update.cf/pay',
+        links: 'http://microsoft-billing-update.cf/pay'
+      },
+      homograph: {
+        sender: 'PayPal Support <service@pаypal.com>',
+        subject: 'Account Notice - Cyrillic Homograph Test',
+        body: 'Please verify your billing details on http://pаypal.com/signin (Note: "а" is Cyrillic lookalike character).',
+        links: 'http://pаypal.com/signin'
+      },
+      github: {
+        sender: 'GitHub <noreply@github.com>',
+        subject: 'Your GitHub Security Alert',
+        body: 'Hi there,\n\nWe noticed a new sign-in to your GitHub account from Chrome on Linux. If this was you, no action is needed.\n\nReview settings: https://github.com/settings/security',
+        links: 'https://github.com/settings/security'
+      },
+      amazon: {
+        sender: 'Amazon.com <shipment-tracking@amazon.com>',
+        subject: 'Your order #123-4567890-1234567 has shipped',
+        body: 'Hello,\n\nYour package is on its way. Track your package: https://www.amazon.com/track-package?orderId=12345\n\nTotal: $92.98',
+        links: 'https://www.amazon.com/track-package?orderId=12345'
+      }
+    };
 
-We noticed a new sign-in to your GitHub account from a new device.
+    function loadScenario(name) {
+      const s = scenarios[name];
+      if (!s) return;
+      document.getElementById('inputSender').value = s.sender;
+      document.getElementById('inputSubject').value = s.subject;
+      document.getElementById('inputBody').value = s.body;
+      document.getElementById('inputLinks').value = s.links;
+      runLiveAnalysis();
+    }
 
-Device: Chrome on Windows
-Location: San Francisco, CA
-Time: August 18, 2026 2:30 PM PDT
+    function runLiveAnalysis() {
+      const senderRaw = document.getElementById('inputSender').value || '';
+      const subject = document.getElementById('inputSubject').value || '';
+      const body = document.getElementById('inputBody').value || '';
+      const linksRaw = document.getElementById('inputLinks').value || '';
 
-If this was you, no action is needed. If not, please secure your account:
+      const match = senderRaw.match(/@([^@\s>]+)/);
+      const senderDomain = match ? match[1].toLowerCase() : '';
 
-https://github.com/settings/security
+      const links = linksRaw.split('\n').map(l => l.trim()).filter(Boolean).map(href => ({ href, text: href }));
 
-You can also review recent activity:
-https://github.com/settings/security/analysis
+      const emailContent = {
+        subject,
+        text: `${subject}\n\n${body}`,
+        body,
+        sender: {
+          email: senderRaw,
+          domain: senderDomain
+        },
+        links
+      };
 
-Thanks,
-The GitHub Team
-    </div>
-  </div>
+      const result = window.PhishNet ? window.PhishNet.heuristicDetect(emailContent, links) : { label: 'uncertain', confidence: 0.5, reasons: [] };
 
-  <!-- Legitimate Test Email 2 -->
-  <div class="email">
-    <div class="email-header">
-      <span class="label label-safe">Expected: SAFE</span>
-      <div class="email-meta">
-        <div class="email-subject">Your order #123-4567890-1234567 has shipped</div>
-        <div class="email-sender">Amazon.com <shipment-tracking@amazon.com></div>
-      </div>
-    </div>
-    <div class="email-body">
-Hello,
+      const resultBox = document.getElementById('liveResult');
+      resultBox.classList.add('visible');
 
-Your Amazon order has shipped!
+      const isPhish = result.label.includes('phishing');
+      const isSafe = result.label.includes('legitimate');
 
-Order #123-4567890-1234567
-Shipped: August 18, 2026
-Delivery estimate: August 20, 2026
+      const tag = document.getElementById('verdictTag');
+      tag.className = 'verdict-tag ' + (isPhish ? 'phishing' : (isSafe ? 'safe' : 'uncertain'));
+      tag.textContent = (isPhish ? '⚠️ Phishing Threat' : (isSafe ? '🛡️ Safe Email' : '❓ Uncertain')) + ` (${Math.round(result.confidence * 100)}%)`;
 
-Track your package:
-https://www.amazon.com/track-package?orderId=123-4567890-1234567
+      if (result.signals) {
+        document.getElementById('sigUrgency').textContent = `${result.signals.urgencyScore}/40`;
+        document.getElementById('sigDomain').textContent = `${result.signals.senderTrustScore}/45`;
+        document.getElementById('sigLinks').textContent = `${result.signals.linkRiskScore}/45`;
+        document.getElementById('sigTotal').textContent = `${result.signals.totalRiskScore}/100`;
+      }
 
-Order details:
-- Wireless Headphones - $79.99
-- USB-C Cable - $12.99
-
-Total: $92.98
-
-If you have any questions, visit:
-https://www.amazon.com/help
-
-Thank you for shopping with Amazon!
-    </div>
-  </div>
-
-  <!-- Uncertain/Borderline Test Email -->
-  <div class="email">
-    <div class="email-header">
-      <span class="label label-uncertain">Expected: UNCERTAIN</span>
-      <div class="email-meta">
-        <div class="email-subject">Update your account information</div>
-        <div class="email-sender">Support Team <support@company-services.net></div>
-      </div>
-    </div>
-    <div class="email-body">
-Dear User,
-
-We need you to update your account information to continue using our services.
-
-Please log in and verify your details:
-https://company-services.net/account/verify
-
-If you have questions, contact support@company-services.net
-
-Best regards,
-Support Team
-    </div>
-  </div>
-
-  <hr style="margin: 40px 0;">
-  
-  <h2>Test Checklist</h2>
-  <ul>
-    <li>☐ Phishing email 1 → Red badge (⚠️ Phishing)</li>
-    <li>☐ Phishing email 2 → Red badge (⚠️ Phishing)</li>
-    <li>☐ Safe email 1 → Green badge (🛡️ Safe)</li>
-    <li>☐ Safe email 2 → Green badge (🛡️ Safe)</li>
-    <li>☐ Borderline email → Amber badge (❓ Uncertain)</li>
-    <li>☐ Hover badge → Tooltip with confidence & reasons</li>
-    <li>☐ Suspicious links → Red wavy underline + ⚠️ indicator</li>
-    <li>☐ Popup opens → Shows model status & settings</li>
-    <li>☐ Settings persist after reload</li>
-  </ul>
+      const list = document.getElementById('reasonsList');
+      list.innerHTML = '';
+      if (result.reasons && result.reasons.length > 0) {
+        result.reasons.forEach(r => {
+          const li = document.createElement('li');
+          li.textContent = r;
+          list.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'No suspicious indicators found. Standard authentic email patterns.';
+        list.appendChild(li);
+      }
+    }
+  </script>
 </body>
 </html>

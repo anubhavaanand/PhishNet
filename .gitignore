@@ -1,12 +1,14 @@
 # Dependencies
 node_modules/
 
-# Build output
+# Documentation (internal developer notes)
+doc/
+
+# Build & Package outputs
 dist/
 build/
-
-# Documentation (not tracked)
-doc/
+*.zip
+*.tar.gz
 
 # Environment files
 .env
@@ -22,14 +24,10 @@ doc/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs & Testing
 *.log
 npm-debug.log*
-
-# Testing
 coverage/
 .nyc_output/
-
-# Cache
 .cache/
 .eslintcache

@@ -1,57 +1,94 @@
 /**
  * PhishNet Popup Script
- * Handles UI interactions and communicates with background worker
+ * Coordinates UI tabs, scan requests, local stats, whitelist, and settings
  */
 
 import logger from './utils/logger.js';
 
 // DOM Elements
-const statusIndicator = document.getElementById('statusIndicator');
+const statusDot = document.getElementById('statusDot');
 const statusLabel = document.getElementById('statusLabel');
-const statusDetail = document.getElementById('statusDetail');
 const progressBar = document.getElementById('progressBar');
 const progressFill = document.getElementById('progressFill');
+
 const scanButton = document.getElementById('scanButton');
 const scanButtonText = document.getElementById('scanButtonText');
-const result = document.getElementById('result');
+const resultCard = document.getElementById('resultCard');
 const resultIcon = document.getElementById('resultIcon');
 const resultLabel = document.getElementById('resultLabel');
 const resultConfidence = document.getElementById('resultConfidence');
 const resultReasons = document.getElementById('resultReasons');
-const errorMessage = document.getElementById('errorMessage');
+const errorBox = document.getElementById('errorBox');
 
-// Settings elements
+// Stats Elements
+const statTotal = document.getElementById('statTotal');
+const statBlocked = document.getElementById('statBlocked');
+const statSafe = document.getElementById('statSafe');
+const historyList = document.getElementById('historyList');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+// Whitelist Elements
+const whitelistInput = document.getElementById('whitelistInput');
+const addWhitelistBtn = document.getElementById('addWhitelistBtn');
+const whitelistList = document.getElementById('whitelistList');
+
+// Settings Elements
 const settingAutoScan = document.getElementById('settingAutoScan');
 const settingHighlightLinks = document.getElementById('settingHighlightLinks');
-const settingShowTooltip = document.getElementById('settingShowTooltip');
 const thresholdSlider = document.getElementById('thresholdSlider');
 const thresholdValue = document.getElementById('thresholdValue');
+
+// Tabs
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
 
 // State
 let currentSettings = {
   autoScan: true,
   highlightLinks: true,
-  showTooltip: true,
-  sensitivityThreshold: 0.7
+  sensitivityThreshold: 0.7,
+  whitelist: []
 };
-
-let lastScanResult = null;
 
 /**
  * Initialize popup
  */
 async function init() {
-  await refreshStatus();
-  await loadSettings();
-
+  setupTabs();
   setupEventListeners();
 
-  // Periodic status refresh
+  await refreshStatus();
+  await loadSettings();
+  await loadStatsAndHistory();
+
   setInterval(refreshStatus, 4000);
 }
 
 /**
- * Refresh model status from background
+ * Tab Navigation Setup
+ */
+function setupTabs() {
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-tab');
+
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById(targetId)?.classList.add('active');
+
+      if (targetId === 'tab-stats') {
+        loadStatsAndHistory();
+      } else if (targetId === 'tab-whitelist') {
+        renderWhitelist();
+      }
+    });
+  });
+}
+
+/**
+ * Refresh Model & Service Worker Status
  */
 async function refreshStatus() {
   try {
@@ -59,7 +96,6 @@ async function refreshStatus() {
 
     if (response) {
       updateStatusUI(response.modelStatus, response.progress);
-      updateScanButton(response.modelStatus);
     }
   } catch (error) {
     logger.error('Status refresh failed:', error);
@@ -67,48 +103,38 @@ async function refreshStatus() {
 }
 
 /**
- * Update status UI
+ * Update Status UI
  */
-function updateStatusUI(status, progress = 0) {
-  statusIndicator.className = 'status-indicator ' + (status || 'loading');
+function updateStatusUI(status = 'loading', progress = 0) {
+  statusDot.className = 'status-dot ' + status;
 
   switch (status) {
     case 'loading':
-      statusLabel.textContent = 'Loading model...';
-      statusDetail.textContent = progress > 0 ? `${progress}%` : 'Downloading ~50MB model on first use (runs offline once cached)';
+      statusLabel.textContent = progress > 0 ? `Loading ${progress}%` : 'Loading AI...';
       progressBar.classList.add('visible');
       progressFill.style.width = `${progress}%`;
       break;
     case 'ready':
-      statusLabel.textContent = 'Protection Active';
-      statusDetail.textContent = 'On-device AI ready (100% private)';
+      statusLabel.textContent = 'Protected';
       progressBar.classList.remove('visible');
       break;
     case 'error':
-      statusLabel.textContent = 'Model Offline';
-      statusDetail.textContent = 'Using heuristic rule fallback';
+      statusLabel.textContent = 'Rules Active';
       progressBar.classList.remove('visible');
       break;
   }
 }
 
 /**
- * Update scan button state
- */
-function updateScanButton(status) {
-  // Allow scan even if offline (will use heuristics)
-  scanButton.disabled = false;
-}
-
-/**
- * Load settings from background
+ * Load Settings from Background
  */
 async function loadSettings() {
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
     if (response) {
-      currentSettings = response;
+      currentSettings = Object.assign(currentSettings, response);
       applySettingsToUI();
+      renderWhitelist();
     }
   } catch (error) {
     logger.error('Settings load failed:', error);
@@ -116,12 +142,11 @@ async function loadSettings() {
 }
 
 /**
- * Apply settings to UI controls
+ * Apply Settings to UI
  */
 function applySettingsToUI() {
   if (settingAutoScan) settingAutoScan.checked = !!currentSettings.autoScan;
   if (settingHighlightLinks) settingHighlightLinks.checked = !!currentSettings.highlightLinks;
-  if (settingShowTooltip) settingShowTooltip.checked = !!currentSettings.showTooltip;
   if (thresholdSlider && thresholdValue) {
     const val = Math.round((currentSettings.sensitivityThreshold ?? 0.7) * 100);
     thresholdSlider.value = val;
@@ -130,14 +155,146 @@ function applySettingsToUI() {
 }
 
 /**
- * Set up event listeners
+ * Load Local Stats & Scan History
+ */
+function loadStatsAndHistory() {
+  if (!chrome.storage?.local) return;
+
+  chrome.storage.local.get(['scanHistory', 'scanStats'], (data) => {
+    const stats = data.scanStats || { total: 0, phishing: 0, safe: 0, uncertain: 0, trusted: 0 };
+    const history = data.scanHistory || [];
+
+    if (statTotal) statTotal.textContent = String(stats.total);
+    if (statBlocked) statBlocked.textContent = String(stats.phishing);
+    if (statSafe) statSafe.textContent = String(stats.safe + stats.trusted);
+
+    if (historyList) {
+      historyList.textContent = '';
+      if (history.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.cssText = 'font-size: 11px; color: #64748b; text-align: center; padding: 12px 0;';
+        emptyDiv.textContent = 'No emails scanned yet';
+        historyList.appendChild(emptyDiv);
+      } else {
+        history.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'history-item';
+
+          const sub = document.createElement('span');
+          sub.className = 'history-subject';
+          sub.title = `${item.subject} (${item.sender})`;
+          sub.textContent = item.subject || item.sender;
+
+          const tag = document.createElement('span');
+          const isPhish = item.label.includes('phishing');
+          const isSafe = item.label.includes('legitimate');
+          const isTrusted = item.label === 'trusted';
+
+          tag.className = 'history-tag ' + (isPhish ? 'phishing' : (isTrusted ? 'trusted' : (isSafe ? 'safe' : 'uncertain')));
+          tag.textContent = isTrusted ? 'Trusted' : (isPhish ? 'Phish' : (isSafe ? 'Safe' : 'Uncertain'));
+
+          row.appendChild(sub);
+          row.appendChild(tag);
+          historyList.appendChild(row);
+        });
+      }
+    }
+  });
+}
+
+/**
+ * Render Whitelist Items
+ */
+function renderWhitelist() {
+  if (!whitelistList) return;
+  whitelistList.textContent = '';
+
+  const list = currentSettings.whitelist || [];
+  if (list.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size: 11px; color: #64748b; text-align: center; padding: 12px 0;';
+    empty.textContent = 'No trusted senders added yet';
+    whitelistList.appendChild(empty);
+    return;
+  }
+
+  list.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'whitelist-item';
+
+    const text = document.createElement('span');
+    text.textContent = entry;
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'remove-btn';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove from trusted';
+    delBtn.addEventListener('click', () => removeWhitelistEntry(entry));
+
+    item.appendChild(text);
+    item.appendChild(delBtn);
+    whitelistList.appendChild(item);
+  });
+}
+
+/**
+ * Add Whitelist Entry
+ */
+async function addWhitelistEntry() {
+  const inputVal = (whitelistInput.value || '').trim().toLowerCase();
+  if (!inputVal) return;
+
+  try {
+    const res = await chrome.runtime.sendMessage({
+      type: 'ADD_WHITELIST',
+      entry: inputVal
+    });
+    if (res?.success) {
+      currentSettings.whitelist = res.whitelist;
+      whitelistInput.value = '';
+      renderWhitelist();
+    }
+  } catch (e) {
+    logger.error('Failed to add whitelist entry:', e);
+  }
+}
+
+/**
+ * Remove Whitelist Entry
+ */
+async function removeWhitelistEntry(entry) {
+  try {
+    const res = await chrome.runtime.sendMessage({
+      type: 'REMOVE_WHITELIST',
+      entry
+    });
+    if (res?.success) {
+      currentSettings.whitelist = res.whitelist;
+      renderWhitelist();
+    }
+  } catch (e) {
+    logger.error('Failed to remove whitelist entry:', e);
+  }
+}
+
+/**
+ * Setup Event Listeners
  */
 function setupEventListeners() {
   scanButton.addEventListener('click', handleScanClick);
 
+  addWhitelistBtn?.addEventListener('click', addWhitelistEntry);
+  whitelistInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addWhitelistEntry();
+  });
+
+  clearHistoryBtn?.addEventListener('click', async () => {
+    await chrome.runtime.sendMessage({ type: 'CLEAR_HISTORY' });
+    loadStatsAndHistory();
+  });
+
   settingAutoScan?.addEventListener('change', () => updateSetting('autoScan', settingAutoScan.checked));
   settingHighlightLinks?.addEventListener('change', () => updateSetting('highlightLinks', settingHighlightLinks.checked));
-  settingShowTooltip?.addEventListener('change', () => updateSetting('showTooltip', settingShowTooltip.checked));
 
   thresholdSlider?.addEventListener('input', (e) => {
     const value = parseInt(e.target.value);
@@ -151,14 +308,13 @@ function setupEventListeners() {
 }
 
 /**
- * Handle scan button click
+ * Handle Manual Scan Click
  */
 async function handleScanClick() {
   if (scanButton.disabled) return;
 
   scanButton.disabled = true;
-  scanButton.classList.add('scanning');
-  scanButtonText.textContent = 'Scanning...';
+  scanButtonText.textContent = 'Scanning email...';
   hideResult();
   hideError();
 
@@ -166,119 +322,106 @@ async function handleScanClick() {
     const response = await chrome.runtime.sendMessage({ type: 'SCAN_CURRENT_TAB' });
 
     if (response && response.success && response.result) {
-      lastScanResult = response.result;
       showResult(response.result);
+      loadStatsAndHistory();
     } else {
-      showError(response?.error || 'No active email found. Open an email in Gmail or Outlook and try again.');
+      showError(response?.error || 'No email open in Gmail/Outlook. Open an email and try again.');
     }
   } catch (error) {
     showError('Scan failed: ' + error.message);
   } finally {
     scanButton.disabled = false;
-    scanButton.classList.remove('scanning');
     scanButtonText.textContent = 'Scan Current Email';
   }
 }
 
 /**
- * Show scan result safely using DOM methods
+ * Show Scan Result
  */
 function showResult(scanResult) {
   if (!scanResult) return;
-  lastScanResult = scanResult;
 
-  result.className = 'result visible ' + getResultClass(scanResult.label);
+  const isPhish = scanResult.label.includes('phishing');
+  const isSafe = scanResult.label.includes('legitimate');
+  const isTrusted = scanResult.label === 'trusted';
+
+  resultCard.className = 'result-card visible ' + (isTrusted ? 'trusted' : (isPhish ? 'phishing' : (isSafe ? 'safe' : 'uncertain')));
 
   const icons = {
     'phishing_email': '⚠️',
     'phishing_url': '🔗',
     'legitimate_email': '🛡️',
     'legitimate_url': '🔗',
+    'trusted': '⭐',
     'uncertain': '❓'
   };
 
-  const labels = {
-    'phishing_email': 'Phishing Email',
+  const titles = {
+    'phishing_email': 'Phishing Threat',
     'phishing_url': 'Phishing Link',
     'legitimate_email': 'Safe Email',
     'legitimate_url': 'Safe Link',
-    'uncertain': 'Uncertain / Suspicious'
+    'trusted': 'Trusted Sender',
+    'uncertain': 'Uncertain / Review'
   };
 
   resultIcon.textContent = icons[scanResult.label] || '❓';
-  resultLabel.textContent = labels[scanResult.label] || 'Analyzed';
+  resultLabel.textContent = titles[scanResult.label] || 'Analyzed';
   resultConfidence.textContent = `${Math.round((scanResult.confidence || 0) * 100)}%`;
 
-  // Safely populate reasons
   resultReasons.textContent = '';
   if (scanResult.reasons && scanResult.reasons.length > 0) {
     scanResult.reasons.forEach(r => {
-      const reasonDiv = document.createElement('div');
-      reasonDiv.className = 'result-reason';
-      reasonDiv.textContent = r;
-      resultReasons.appendChild(reasonDiv);
+      const item = document.createElement('div');
+      item.className = 'result-reason-item';
+      item.textContent = `• ${r}`;
+      resultReasons.appendChild(item);
     });
   } else {
-    const reasonDiv = document.createElement('div');
-    reasonDiv.className = 'result-reason';
-    reasonDiv.textContent = 'Standard email patterns observed';
-    resultReasons.appendChild(reasonDiv);
+    const item = document.createElement('div');
+    item.className = 'result-reason-item';
+    item.textContent = '• Standard authentic email patterns observed';
+    resultReasons.appendChild(item);
   }
-
-  result.style.display = 'block';
 }
 
 /**
- * Get CSS class for result
- */
-function getResultClass(label = '') {
-  if (label.includes('phishing')) return 'phishing';
-  if (label.includes('legitimate')) return 'safe';
-  return 'uncertain';
-}
-
-/**
- * Hide result
+ * Hide Result Card
  */
 function hideResult() {
-  result.className = 'result';
-  result.style.display = 'none';
+  resultCard.className = 'result-card';
 }
 
 /**
- * Show error message
+ * Show Error Box
  */
-function showError(message) {
-  errorMessage.textContent = message;
-  errorMessage.classList.add('visible');
-  errorMessage.style.display = 'block';
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('visible');
 }
 
 /**
- * Hide error message
+ * Hide Error Box
  */
 function hideError() {
-  errorMessage.textContent = '';
-  errorMessage.classList.remove('visible');
-  errorMessage.style.display = 'none';
+  errorBox.textContent = '';
+  errorBox.classList.remove('visible');
 }
 
 /**
- * Update setting in background
+ * Update Setting in Background
  */
 async function updateSetting(key, value) {
   currentSettings[key] = value;
-
   try {
     await chrome.runtime.sendMessage({
       type: 'UPDATE_SETTINGS',
       settings: currentSettings
     });
-  } catch (error) {
-    logger.error('Settings update failed:', error);
-    loadSettings();
+  } catch (e) {
+    logger.error('Failed to update setting:', e);
   }
 }
 
-// Initialize when DOM ready
+// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', init);

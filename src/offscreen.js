@@ -7,10 +7,9 @@ import { pipeline, env } from '../vendor/transformers.min.js';
 import logger from './utils/logger.js';
 
 // Configure Transformers.js environment
-env.allowLocalModels = true;
+env.allowLocalModels = false; // Download from Hugging Face Hub, then cache in IndexedDB
 env.allowRemoteModels = true;
 env.useBrowserCache = true;
-env.localModelPath = chrome.runtime.getURL('models/');
 env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('vendor/ort-wasm/');
 env.backends.onnx.wasm.numThreads = 1; // Single thread for browser compatibility
 

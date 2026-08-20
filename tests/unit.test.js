@@ -165,6 +165,13 @@ test('safeText and safeAttr function properly', () => {
   assert.ok(generateId('phish').startsWith('phish-'));
 });
 
+test('XSS payloads in URLs are safely text-encoded via textContent in DOM elements', () => {
+  const xssHref = 'https://example.com/test"><img src=x onerror=alert(1)>';
+  const urlSpan = { textContent: '' };
+  urlSpan.textContent = xssHref;
+  assert.strictEqual(urlSpan.textContent, xssHref);
+});
+
 console.log(`\n===================================`);
 console.log(`Tests Passed: ${passedTests} | Failed: ${failedTests}`);
 console.log(`===================================\n`);

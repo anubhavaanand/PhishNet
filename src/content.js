@@ -479,15 +479,25 @@
 
     const badge = document.createElement('span');
     badge.className = `phishnet-badge ${config.class} phishnet-tooltip-trigger`;
+    badge.setAttribute('role', 'button');
+    badge.setAttribute('tabindex', '0');
+    badge.setAttribute('aria-label', `${config.label} (${confidencePct}%) - Click or press Enter for threat details`);
     badge.setAttribute('data-confidence', String(result.confidence || 0));
     badge.setAttribute('data-tooltip', `${config.label} (${confidencePct}%) • Click for Threat Details`);
     badge.textContent = `${config.icon} ${config.label} (${confidencePct}%)`;
 
-    // Click to open detailed threat breakdown modal
+    // Click or keyboard trigger to open detailed threat breakdown modal
     badge.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
       openThreatModal(result);
+    });
+    badge.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.stopPropagation();
+        e.preventDefault();
+        openThreatModal(result);
+      }
     });
 
     insertPoint.parentNode.insertBefore(badge, insertPoint.nextSibling);
@@ -507,15 +517,18 @@
 
     const card = document.createElement('div');
     card.className = 'phishnet-modal-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    card.setAttribute('aria-labelledby', 'phishnet-modal-title-id');
 
     const header = document.createElement('div');
     header.className = 'phishnet-modal-header';
     header.innerHTML = `
       <div class="phishnet-modal-header-left">
-        <span class="phishnet-modal-logo">🎣</span>
-        <span class="phishnet-modal-title">PhishNet Threat Inspector</span>
+        <span class="phishnet-modal-logo" aria-hidden="true">🎣</span>
+        <span class="phishnet-modal-title" id="phishnet-modal-title-id">PhishNet Threat Inspector</span>
       </div>
-      <button class="phishnet-modal-close" id="phishnetModalCloseBtn">✕</button>
+      <button class="phishnet-modal-close" id="phishnetModalCloseBtn" aria-label="Close threat details dialog">✕</button>
     `;
 
     const body = document.createElement('div');

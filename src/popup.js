@@ -72,10 +72,14 @@ function setupTabs() {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-tab');
 
-      tabButtons.forEach(b => b.classList.remove('active'));
+      tabButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
       tabContents.forEach(c => c.classList.remove('active'));
 
       btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
       document.getElementById(targetId)?.classList.add('active');
 
       if (targetId === 'tab-stats') {
@@ -228,7 +232,8 @@ function renderWhitelist() {
     const delBtn = document.createElement('button');
     delBtn.className = 'remove-btn';
     delBtn.textContent = '✕';
-    delBtn.title = 'Remove from trusted';
+    delBtn.title = `Remove ${entry} from trusted senders`;
+    delBtn.setAttribute('aria-label', `Remove ${entry} from trusted senders`);
     delBtn.addEventListener('click', () => removeWhitelistEntry(entry));
 
     item.appendChild(text);

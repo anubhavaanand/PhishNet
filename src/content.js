@@ -588,12 +588,21 @@
       result.links.slice(0, 6).forEach(link => {
         const item = document.createElement('div');
         item.className = `phishnet-link-item ${link.suspicious ? 'suspicious' : ''}`;
-        item.innerHTML = `
-          <span class="phishnet-link-url" title="${link.href}">${link.href}</span>
-          <span style="font-size: 10px; font-weight: 700; color: ${link.suspicious ? '#f43f5e' : '#10b981'}">
-            ${link.suspicious ? '⚠️ Suspicious' : '✓ Safe'}
-          </span>
-        `;
+
+        // Security: Avoid innerHTML with unescaped link.href to prevent DOM XSS
+        const urlSpan = document.createElement('span');
+        urlSpan.className = 'phishnet-link-url';
+        urlSpan.title = link.href;
+        urlSpan.textContent = link.href;
+
+        const badgeSpan = document.createElement('span');
+        badgeSpan.style.fontSize = '10px';
+        badgeSpan.style.fontWeight = '700';
+        badgeSpan.style.color = link.suspicious ? '#f43f5e' : '#10b981';
+        badgeSpan.textContent = link.suspicious ? '⚠️ Suspicious' : '✓ Safe';
+
+        item.appendChild(urlSpan);
+        item.appendChild(badgeSpan);
         linkList.appendChild(item);
       });
       linkSection.appendChild(linkList);

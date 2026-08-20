@@ -1,0 +1,3 @@
+## 2025-08-20 - Optimize Levenshtein Distance & Extension Lookups in Heuristic Engine
+**Learning:** Client-side email scanning invokes `heuristicDetect()` repeatedly over multiple links per email on DOM mutations. Allocating 2D matrices in `levenshteinDistance` for lookalike domain checks and performing `Array.includes()` on dangerous extension lists creates significant CPU overhead and garbage collection pressure.
+**Action:** Use 1D row buffer swapping for Levenshtein distance, `Set.prototype.has` for fast $O(1)$ lookups, and pre-compile regular expressions outside loop contexts.

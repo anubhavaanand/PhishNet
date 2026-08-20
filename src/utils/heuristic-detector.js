@@ -27,36 +27,43 @@
     'twitter', 'linkedin', 'github', 'dropbox', 'adobe', 'walmart', 'ebay'
   ];
 
-  const DANGEROUS_EXTENSIONS = [
+  // Converted to Set for O(1) extension lookup speed
+  const DANGEROUS_EXTENSIONS = new Set([
     'exe', 'scr', 'bat', 'cmd', 'vbs', 'vbe', 'js', 'jse', 'wsf', 'wsh',
     'hta', 'iso', 'img', 'lnk', 'jar', 'msi', 'ps1', 'reg', 'pif', 'com'
-  ];
+  ]);
+
+  // Pre-compiled regular expressions to eliminate per-call regex instantiation & GC overhead
+  const CYRILLIC_LOOKALIKES_REGEX = /[\u0430\u0435\u043E\u0440\u0441\u0443\u0445\u0456\u0458\u0400-\u04FF]/;
+  const LATIN_REGEX = /[a-zA-Z]/;
+  const IP_HOSTNAME_REGEX = /^\d+\.\d+\.\d+\.\d+$/;
+  const MULTI_DIGIT_REGEX = /[0-9]{4,}/;
 
   /**
    * Levenshtein Distance for typo-squatting detection
+   * Optimized to use two 1D row buffers instead of full 2D matrix allocation (O(min(N,M)) space)
    */
   function levenshteinDistance(a, b) {
+    if (a === b) return 0;
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
 
-    const matrix = [];
-    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    let row0 = new Array(a.length + 1);
+    let row1 = new Array(a.length + 1);
 
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substitution
-            matrix[i][j - 1] + 1,     // insertion
-            matrix[i - 1][j] + 1      // deletion
-          );
-        }
+    for (let j = 0; j <= a.length; j++) row0[j] = j;
+
+    for (let i = 0; i < b.length; i++) {
+      row1[0] = i + 1;
+      for (let j = 0; j < a.length; j++) {
+        const cost = b.charCodeAt(i) === a.charCodeAt(j) ? 0 : 1;
+        row1[j + 1] = Math.min(row1[j] + 1, row0[j + 1] + 1, row0[j] + cost);
       }
+      const tmp = row0;
+      row0 = row1;
+      row1 = tmp;
     }
-    return matrix[b.length][a.length];
+    return row0[a.length];
   }
 
   /**
@@ -67,10 +74,9 @@
     // Punycode check
     if (str.toLowerCase().includes('xn--')) return true;
 
-    // Check for mixed scripts (Cyrillic characters often used to spoof Latin letters: а, е, о, р, с, у, х, і, ј)
-    const cyrillicLookalikes = /[\u0430\u0435\u043E\u0440\u0441\u0443\u0445\u0456\u0458\u0400-\u04FF]/;
-    const hasLatin = /[a-zA-Z]/.test(str);
-    const hasCyrillic = cyrillicLookalikes.test(str);
+    // Check for mixed scripts using pre-compiled regexes
+    const hasLatin = LATIN_REGEX.test(str);
+    const hasCyrillic = CYRILLIC_LOOKALIKES_REGEX.test(str);
 
     return hasLatin && hasCyrillic;
   }
@@ -121,11 +127,11 @@
     if (!filename) return { dangerous: false };
     const lowerName = filename.toLowerCase().trim();
 
-    // Check double extensions (e.g., Invoice.pdf.exe)
+    // Check double extensions (e.g., Invoice.pdf.exe) using Set.has for O(1) speed
     const doubleExtMatch = lowerName.match(/\.([a-z0-9]+)\.([a-z0-9]+)$/i);
     if (doubleExtMatch) {
       const outerExt = doubleExtMatch[2];
-      if (DANGEROUS_EXTENSIONS.includes(outerExt)) {
+      if (DANGEROUS_EXTENSIONS.has(outerExt)) {
         return {
           filename,
           dangerous: true,
@@ -134,11 +140,11 @@
       }
     }
 
-    // Direct dangerous extension
+    // Direct dangerous extension using Set.has for O(1) speed
     const extMatch = lowerName.match(/\.([a-z0-9]+)$/i);
     if (extMatch) {
       const ext = extMatch[1];
-      if (DANGEROUS_EXTENSIONS.includes(ext)) {
+      if (DANGEROUS_EXTENSIONS.has(ext)) {
         return {
           filename,
           dangerous: true,
@@ -183,8 +189,8 @@
         if (domain === s || domain.endsWith('.' + s)) return true;
       }
 
-      // IP address hostname
-      if (/^\d+\.\d+\.\d+\.\d+$/.test(domain)) return true;
+      // IP address hostname using pre-compiled regex
+      if (IP_HOSTNAME_REGEX.test(domain)) return true;
 
       // Excessive subdomains
       if (domain.split('.').length > 4) return true;
@@ -218,8 +224,8 @@
       if (lowerDomain.endsWith(tld)) return true;
     }
 
-    if (/^\d+\.\d+\.\d+\.\d+$/.test(lowerDomain)) return true;
-    if (/[0-9]{4,}/.test(lowerDomain)) return true;
+    if (IP_HOSTNAME_REGEX.test(lowerDomain)) return true;
+    if (MULTI_DIGIT_REGEX.test(lowerDomain)) return true;
 
     return false;
   }

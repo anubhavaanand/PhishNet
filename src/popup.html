@@ -174,6 +174,13 @@
       transform: translateY(-1px);
     }
 
+    button:focus-visible,
+    input:focus-visible,
+    .toggle input:focus-visible + .toggle-slider {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
     .scan-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -544,23 +551,23 @@
   </div>
 
   <!-- Navigation Tabs -->
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="tab-scanner">🎯 Scan</button>
-    <button class="tab-btn" data-tab="tab-stats">📊 Stats</button>
-    <button class="tab-btn" data-tab="tab-whitelist">⭐ Trusted</button>
-    <button class="tab-btn" data-tab="tab-settings">⚙️ Settings</button>
+  <div class="tabs" role="tablist" aria-label="PhishNet Navigation">
+    <button class="tab-btn active" role="tab" id="tab-btn-scanner" aria-selected="true" aria-controls="tab-scanner" data-tab="tab-scanner">🎯 Scan</button>
+    <button class="tab-btn" role="tab" id="tab-btn-stats" aria-selected="false" aria-controls="tab-stats" data-tab="tab-stats">📊 Stats</button>
+    <button class="tab-btn" role="tab" id="tab-btn-whitelist" aria-selected="false" aria-controls="tab-whitelist" data-tab="tab-whitelist">⭐ Trusted</button>
+    <button class="tab-btn" role="tab" id="tab-btn-settings" aria-selected="false" aria-controls="tab-settings" data-tab="tab-settings">⚙️ Settings</button>
   </div>
 
   <!-- Tab 1: Scanner -->
-  <div class="tab-content active" id="tab-scanner">
-    <button class="scan-btn" id="scanButton">
+  <div class="tab-content active" id="tab-scanner" role="tabpanel" aria-labelledby="tab-btn-scanner">
+    <button class="scan-btn" id="scanButton" aria-label="Scan Current Email">
       <span id="scanButtonText">Scan Current Email</span>
     </button>
 
-    <div class="result-card" id="resultCard">
+    <div class="result-card" id="resultCard" aria-live="polite">
       <div class="result-header">
         <div class="result-label-group">
-          <span class="result-icon" id="resultIcon">🛡️</span>
+          <span class="result-icon" id="resultIcon" aria-hidden="true">🛡️</span>
           <span class="result-title" id="resultLabel">Safe Email</span>
         </div>
         <span class="result-score" id="resultConfidence">95%</span>
@@ -568,11 +575,11 @@
       <div class="result-reasons" id="resultReasons"></div>
     </div>
 
-    <div class="error-box" id="errorBox"></div>
+    <div class="error-box" id="errorBox" role="alert"></div>
   </div>
 
   <!-- Tab 2: Stats & History -->
-  <div class="tab-content" id="tab-stats">
+  <div class="tab-content" id="tab-stats" role="tabpanel" aria-labelledby="tab-btn-stats">
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="statTotal">0</div>
@@ -591,7 +598,7 @@
     <div class="history-card">
       <div class="history-header">
         <span class="history-title">Recent Scans (Local Only)</span>
-        <button class="clear-btn" id="clearHistoryBtn">Clear</button>
+        <button class="clear-btn" id="clearHistoryBtn" aria-label="Clear scan history">Clear</button>
       </div>
       <div class="history-list" id="historyList">
         <div style="font-size: 11px; color: #64748b; text-align: center; padding: 12px 0;">No emails scanned yet</div>
@@ -600,34 +607,34 @@
   </div>
 
   <!-- Tab 3: Whitelist (Trusted Senders) -->
-  <div class="tab-content" id="tab-whitelist">
+  <div class="tab-content" id="tab-whitelist" role="tabpanel" aria-labelledby="tab-btn-whitelist">
     <div class="whitelist-input-group">
-      <input type="text" class="whitelist-input" id="whitelistInput" placeholder="e.g. company.com or user@domain.com">
-      <button class="add-btn" id="addWhitelistBtn">Add</button>
+      <input type="text" class="whitelist-input" id="whitelistInput" placeholder="e.g. company.com or user@domain.com" aria-label="Trusted domain or email address">
+      <button class="add-btn" id="addWhitelistBtn" aria-label="Add domain or email to trusted list">Add</button>
     </div>
-    <div class="whitelist-list" id="whitelistList"></div>
+    <div class="whitelist-list" id="whitelistList" aria-label="Trusted Senders List"></div>
   </div>
 
   <!-- Tab 4: Settings -->
-  <div class="tab-content" id="tab-settings">
+  <div class="tab-content" id="tab-settings" role="tabpanel" aria-labelledby="tab-btn-settings">
     <div class="setting-item">
       <div class="setting-text">
-        <span class="setting-label">Auto-scan emails</span>
+        <span class="setting-label" id="labelAutoScan">Auto-scan emails</span>
         <span class="setting-desc">Automatically evaluate opened emails</span>
       </div>
       <label class="toggle">
-        <input type="checkbox" id="settingAutoScan" checked>
+        <input type="checkbox" id="settingAutoScan" aria-labelledby="labelAutoScan" checked>
         <span class="toggle-slider"></span>
       </label>
     </div>
 
     <div class="setting-item">
       <div class="setting-text">
-        <span class="setting-label">Highlight suspicious links</span>
+        <span class="setting-label" id="labelHighlightLinks">Highlight suspicious links</span>
         <span class="setting-desc">Wavy red underline on unsafe URLs</span>
       </div>
       <label class="toggle">
-        <input type="checkbox" id="settingHighlightLinks" checked>
+        <input type="checkbox" id="settingHighlightLinks" aria-labelledby="labelHighlightLinks" checked>
         <span class="toggle-slider"></span>
       </label>
     </div>
@@ -637,7 +644,7 @@
         <span>Sensitivity Threshold</span>
         <span id="thresholdValue" style="color: #38bdf8;">70%</span>
       </div>
-      <input type="range" class="threshold-slider" id="thresholdSlider" min="50" max="95" step="5" value="70">
+      <input type="range" class="threshold-slider" id="thresholdSlider" min="50" max="95" step="5" value="70" aria-label="Sensitivity threshold percentage">
       <span style="font-size: 10.5px; color: #64748b;">Lower = more alerts, Higher = fewer false positives</span>
     </div>
   </div>

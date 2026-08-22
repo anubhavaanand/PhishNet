@@ -12,7 +12,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 <style>
   :root {
     /* Aloe Dark — canonical tokens (mirrored in extension popup) */
@@ -157,28 +159,39 @@
   .feature h3 { font-size: 18px; margin-bottom: 8px; letter-spacing: -0.01em; }
   .feature p { color: var(--muted); font-size: 14px; line-height: 1.65; }
 
-  /* how it works */
-  .how-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(20px, 4vw, 44px); align-items: center; margin-top: 46px; }
-  @media (max-width: 900px) { .how-grid { grid-template-columns: 1fr; } }
+  /* how it works — one paired 3D stage per step */
+  .how-rows { display: flex; flex-direction: column; gap: 18px; margin-top: 46px; }
+
+  .how-row {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: clamp(16px, 3vw, 30px);
+    align-items: stretch;
+  }
+
+  .how-row:nth-child(even) { grid-template-columns: 1fr 320px; }
+  .how-row:nth-child(even) .how-visual { order: 2; }
+  @media (max-width: 900px) {
+    .how-row, .how-row:nth-child(even) { grid-template-columns: 1fr; }
+    .how-row:nth-child(even) .how-visual { order: 0; }
+  }
+
   .how-visual {
     position: relative;
-    border: 1px solid var(--line); border-radius: 20px;
+    border: 1px solid var(--line); border-radius: 18px;
     background:
       radial-gradient(ellipse at 30% 20%, rgba(111,214,160,.08), transparent 60%),
       linear-gradient(180deg, rgba(17,24,39,.55), rgba(11,15,23,.35));
     overflow: hidden;
-    min-height: 380px;
+    min-height: 230px;
   }
   .how-visual canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
   .how-visual canvas:active { cursor: grabbing; }
   .how-hint {
-    position: absolute; bottom: 14px; left: 0; right: 0; text-align: center;
-    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+    position: absolute; bottom: 12px; left: 0; right: 0; text-align: center;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
     pointer-events: none;
   }
-  @media (max-width: 900px) { .how-visual { min-height: 300px; } }
-
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .step {
     border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px;
     background: linear-gradient(180deg, rgba(17,24,39,.5), rgba(17,24,39,.15));
@@ -383,15 +396,29 @@
   <div class="sec-label mono">02 — How it works</div>
   <h2>A transformer in your tab, not our cloud.</h2>
 
-  <div class="how-grid">
-    <div class="how-visual reveal" id="lure-stage">
-      <canvas id="lure-canvas"></canvas>
-      <div class="how-hint mono">drag to spin · red lures get deflected</div>
+  <div class="how-rows">
+    <div class="how-row">
+      <div class="how-visual reveal">
+        <canvas id="stage-extract"></canvas>
+        <div class="how-hint mono">live scan sweep</div>
+      </div>
+      <div class="step"><div class="num">01 / EXTRACT</div><h3>Read the email locally</h3><p>A content script extracts subject, body, links and attachments from the open message in Gmail or Outlook Web.</p></div>
     </div>
-    <div class="steps">
-    <div class="step"><div class="num">01 / EXTRACT</div><h3>Read the email locally</h3><p>A content script extracts subject, body, links and attachments from the open message in Gmail or Outlook Web.</p></div>
-    <div class="step"><div class="num">02 / INFER</div><h3>Classify on-device</h3><p>The text runs through a quantized DistilBERT model via Transformers.js + ONNX Runtime Web inside an isolated offscreen document.</p></div>
-    <div class="step"><div class="num">03 / MARK</div><h3>Show the verdict</h3><p>A badge is injected into the header. Suspicious links get highlighted. Click through for full forensic detail.</p></div>
+
+    <div class="how-row">
+      <div class="how-visual reveal">
+        <canvas id="stage-infer"></canvas>
+        <div class="how-hint mono">signal pulses through layers</div>
+      </div>
+      <div class="step"><div class="num">02 / INFER</div><h3>Classify on-device</h3><p>The text runs through a quantized DistilBERT model via Transformers.js + ONNX Runtime Web inside an isolated offscreen document.</p></div>
+    </div>
+
+    <div class="how-row">
+      <div class="how-visual reveal">
+        <canvas id="stage-mark"></canvas>
+        <div class="how-hint mono">verdict · stamped locally</div>
+      </div>
+      <div class="step"><div class="num">03 / MARK</div><h3>Show the verdict</h3><p>A badge is injected into the header. Suspicious links get highlighted. Click through for full forensic detail.</p></div>
     </div>
   </div>
 </section>
@@ -441,7 +468,7 @@
 </footer>
 
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from './vendor/three.module.js';
 
 const canvas = document.getElementById('scene-canvas');
 const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -624,97 +651,271 @@ if ('IntersectionObserver' in window && !prefersReduced) {
   setTimeout(() => revealables.forEach(el => el.classList.add('in')), 2500);
 }
 
-/* ---- Section 2 scene: draggable lure (torus-knot) deflecting phish shards ---- */
-const lureStage = document.getElementById('lure-stage');
-if (lureStage) {
-  const lCanvas = document.getElementById('lure-canvas');
-  const r2 = new THREE.WebGLRenderer({ canvas: lCanvas, antialias: true, alpha: true });
-  r2.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
-  const sc2 = new THREE.Scene();
-  const cam2 = new THREE.PerspectiveCamera(50, 1, 0.1, 40);
-  cam2.position.set(0, 0, 6.4);
-  sc2.add(new THREE.AmbientLight(0x8fd9b4, 0.9));
-  const pl = new THREE.PointLight(0x6fd6a0, 30); pl.position.set(4, 5, 6); sc2.add(pl);
-  const pr = new THREE.PointLight(0xf43f5e, 14); pr.position.set(-5, -3, -4); sc2.add(pr);
+/* ---- Paired mini-scenes: one 3D element per how-it-works step ---- */
+function makeMiniStage(canvasId, { camZ = 5, setup, spin = 0.15 } = {}) {
+  const stage = canvasId.closest ? canvasId : document.getElementById(canvasId);
+  const canvas = stage.querySelector('canvas');
 
-  // the "net knot" — the filter itself
-  const knot = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(1.55, 0.44, 150, 20),
-    new THREE.MeshBasicMaterial({ color: 0x6fd6a0, wireframe: true, transparent: true, opacity: 0.34 })
-  );
-  const lureGroup = new THREE.Group();
-  lureGroup.add(knot);
+  // Lazily create GL resources on first visibility: keeps simultaneous
+  // WebGL contexts minimal (software-GL hosts crash on eager contexts).
+  let renderer, scene, camera, group, update, inited = false, failed = false;
 
-  // orbiting shards: red phish lures bounce off, green mail passes through
-  const shardGeo = new THREE.TetrahedronGeometry(0.16);
-  const shards = [];
-  for (let i = 0; i < 26; i++) {
-    const phish = Math.random() < 0.45;
-    const m = new THREE.Mesh(shardGeo, new THREE.MeshStandardMaterial({
-      color: phish ? 0xf43f5e : 0x34c98b,
-      emissive: phish ? 0x4c0519 : 0x064e3b,
-      roughness: 0.45
-    }));
-    const orbit = { r: 2.7 + Math.random() * 0.9, speed: 0.25 + Math.random() * 0.55,
-                    incl: Math.random() * Math.PI, phase: Math.random() * Math.PI * 2 };
-    shards.push({ m, orbit, phish });
-    lureGroup.add(m);
+  function init() {
+    if (inited || failed) return;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(50, 1, 0.1, 30);
+      camera.position.set(0, 0.2, camZ);
+      camera.lookAt(0, 0, 0);
+
+      scene.add(new THREE.AmbientLight(0x9fdcbf, 0.85));
+      const pl = new THREE.PointLight(0x6fd6a0, 26); pl.position.set(3.5, 4, 5); scene.add(pl);
+      const pr = new THREE.PointLight(0xf43f5e, 10); pr.position.set(-4, -3, -3); scene.add(pr);
+
+      group = new THREE.Group();
+      scene.add(group);
+      update = setup({ group, scene, add: (o) => group.add(o) });
+      size();
+      inited = true;
+    } catch (err) {
+      failed = true;
+      console.warn('[PhishNet] 3D stage unavailable:', err.message);
+      stage.style.background = 'radial-gradient(ellipse at 50% 40%, rgba(111,214,160,.12), transparent 70%), #0A120D';
+    }
   }
-  sc2.add(lureGroup);
 
-  // drag-to-spin with inertia
-  let vx = 0.003, vy = 0.0012, dragging = false, lx = 0, ly = 0;
-  lCanvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; lCanvas.setPointerCapture(e.pointerId); });
-  lCanvas.addEventListener('pointermove', e => {
+  function size() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h || !renderer) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(() => inited && size()).observe(stage);
+
+  // gentle auto-spin + drag inertia
+  let vx = 0, vy = spin * 0.02, dragging = false, lx = 0, ly = 0;
+  canvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', e => {
     if (!dragging) return;
-    vy = (e.clientX - lx) * 0.0035; vx = (e.clientY - ly) * 0.0035;
+    vy = (e.clientX - lx) * 0.004; vx = (e.clientY - ly) * 0.004;
     lx = e.clientX; ly = e.clientY;
   });
-  ['pointerup', 'pointercancel'].forEach(ev => lCanvas.addEventListener(ev, () => dragging = false));
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => canvas.addEventListener(ev, () => dragging = false));
 
-  function sizeLure() {
-    const w = lureStage.clientWidth, h = lureStage.clientHeight;
-    if (!w || !h) return;
-    r2.setSize(w, h, false);
-    cam2.aspect = w / h; cam2.updateProjectionMatrix();
-  }
-  new ResizeObserver(sizeLure).observe(lureStage);
-  sizeLure();
-
-  window.__pnLureRenders = 0;
-  function tickLure() {
-    lureRaf = requestAnimationFrame(tickLure);
-    window.__pnLureRenders++;
-    if (!dragging) { vx *= 0.96; vy *= 0.96; vx += (0 - vx) * 0.01 + 0.00018; }
-    lureGroup.rotation.y += vy; lureGroup.rotation.x += vx;
-    const t = performance.now() / 1000;
-    for (const s of shards) {
-      const o = s.orbit;
-      const a = t * o.speed * 0.4 + o.phase;
-      const x = Math.cos(a) * o.r, z = Math.sin(a) * o.r, y = Math.sin(a * 1.7 + o.incl) * 1.15;
-      const inside = Math.hypot(x, z) < 2.05 && s.phish; // red shards bounce off the knot shell
-      s.m.position.set(x, y, z);
-      s.m.rotation.x += 0.02; s.m.rotation.y += 0.03;
-      const target = inside ? 1.35 : 1;
-      s.m.scale.lerp(new THREE.Vector3(target, target, target), 0.08);
-      s.m.material.opacity = 1;
+  let raf = null, running = false;
+  const clock = new THREE.Clock();
+  function tick() {
+    raf = requestAnimationFrame(tick);
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const t = clock.elapsedTime;
+    if (!dragging) {
+      vy *= 0.97; vx *= 0.97;
+      vy += (spin * 0.02 - vy) * 0.02;
+      group.rotation.y += vy; group.rotation.x += vx * 0.6;
+    } else {
+      group.rotation.y += vy; group.rotation.x += vx * 0.6;
     }
-    r2.render(sc2, cam2);
+    update(t, dt);
+    renderer.render(scene, camera);
   }
-  let lureRaf = null, lureRunning = false;
-  function startLure() {
-    if (lureRunning || prefersReduced) return;
-    lureRunning = true;
-    lureRaf = requestAnimationFrame(tickLure);
+  function start() {
+    if (running || prefersReduced) return;
+    init();
+    if (!inited) return;
+    running = true;
+    clock.start();
+    raf = requestAnimationFrame(tick);
   }
-  function stopLure() {
-    lureRunning = false;
-    if (lureRaf !== null) cancelAnimationFrame(lureRaf);
-    lureRaf = null;
-  }
-  new IntersectionObserver(([en]) => en.isIntersecting ? startLure() : stopLure(),
-    { threshold: 0.05 }).observe(lureStage);
+  function stop() { running = false; if (raf !== null) cancelAnimationFrame(raf); raf = null; }
+  new IntersectionObserver(([en]) => en.isIntersecting ? start() : stop(), { threshold: 0.08 }).observe(stage);
 }
+
+/* --- 01 / EXTRACT — email page with scanning sweep + lifted features --- */
+makeMiniStage(document.querySelectorAll('.how-row')[0].querySelector('.how-visual'), {
+  camZ: 4.6,
+  setup(api) {
+    // the "email page"
+    const page = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.6, 3.4, 8, 10),
+      new THREE.MeshBasicMaterial({ color: 0x6fd6a0, wireframe: true, transparent: true, opacity: 0.22 })
+    );
+    page.rotation.x = -0.28;
+    api.add(page);
+
+    // scan line
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(2.75, 0.03, 0.03),
+      new THREE.MeshBasicMaterial({ color: 0xb9f2d3 })
+    );
+    line.rotation.x = -0.28;
+    api.add(line);
+    const glow = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.75, 0.55),
+      new THREE.MeshBasicMaterial({ color: 0x6fd6a0, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    glow.rotation.copy(line.rotation);
+    api.add(glow);
+
+    // extracted feature particles
+    const bits = [];
+    const bg = new THREE.TetrahedronGeometry(0.07);
+    for (let i = 0; i < 16; i++) {
+      const m = new THREE.Mesh(bg, new THREE.MeshBasicMaterial({
+        color: Math.random() < 0.25 ? 0xf43f5e : 0x9febc4,
+        transparent: true, opacity: 0 }));
+      bits.push({ m, seed: Math.random(), life: -Math.random() * 3 });
+      api.add(m);
+    }
+
+    return (t) => {
+      const cycle = (t % 2.4) / 2.4;                 // sweep period
+      const yTop = 1.7, yBot = -1.7;
+      const y = yTop - cycle * (yTop - yBot);
+      line.position.set(0, y + Math.tan(-page.rotation.x) * 0, 0.06);
+      line.position.y = y;
+      glow.position.set(0, y, 0.05);
+
+      for (const b of bits) {
+        b.life += 1 / 60;
+        if (b.life < 0) continue;
+        if (b.life > 1.9) {                          // respawn on next sweep pass
+          b.life = b.seed > 0.5 ? -(b.seed * 1.2) : 0;
+          b.m.material.opacity = 0;
+          b.m.position.set((b.seed - 0.5) * 2.2, y, 0.1);
+        }
+        const p = Math.min(b.life / 1.9, 1);
+        if (!b.m.material.opacity && p === 0) {
+          b.m.position.set((b.seed - 0.5) * 2.2, y, 0.1);
+        }
+        b.m.position.y = b.m.position.y * 0 + (y + p * 1.6);
+        b.m.position.x = (b.seed - 0.5) * 2.4 + p * (b.seed - 0.5) * 1.4;
+        b.m.rotation.x += 0.04; b.m.rotation.y += 0.05;
+        b.m.material.opacity = p < 0.15 ? p / 0.15 : 1 - ((p - 0.15) / 0.85) * 0.9;
+      }
+    };
+  }
+});
+
+/* --- 02 / INFER — neural net with traveling signal pulses --- */
+makeMiniStage(document.querySelectorAll('.how-row')[1].querySelector('.how-visual'), {
+  camZ: 5.4,
+  setup(api) {
+    const layers = [
+      [-1.7, -0.65], [-1.7, 0.65],
+      [0, -1.05], [0, 0], [0, 1.05],
+      [1.7, -0.65], [1.7, 0.65]
+    ].map(([x, y]) => new THREE.Vector3(x, y, 0));
+
+    const nodeMat = () => new THREE.MeshStandardMaterial({ color: 0x9febc4, emissive: 0x123c2a, roughness: 0.35 });
+    const nodeGeo = new THREE.SphereGeometry(0.13, 14, 14);
+    layers.forEach(p => {
+      const n = new THREE.Mesh(nodeGeo, nodeMat());
+      n.userData.home = p.clone();
+      api.add(n);
+    });
+
+    // edges between adjacent layers
+    const edgePairs = [];
+    const lineMat = () => new THREE.LineBasicMaterial({ color: 0x6fd6a0, transparent: true, opacity: 0.22 });
+    for (let i = 0; i < 2; i++)
+      for (let j = 2; j < 5; j++) { edgePairs.push([i, j]); }
+    for (let i = 2; i < 5; i++)
+      for (let j = 5; j < 7; j++) { edgePairs.push([i, j]); }
+
+    const edges = edgePairs.map(([a, b]) => {
+      const g = new THREE.BufferGeometry().setFromPoints([layers[a], layers[b]]);
+      const l = new THREE.Line(g, lineMat());
+      api.add(l);
+      return { a, b, line: l };
+    });
+
+    // traveling pulses along random edges
+    const pulses = [];
+    const pulseGeo = new THREE.SphereGeometry(0.07, 10, 10);
+    const pulseMat = new THREE.MeshBasicMaterial({ color: 0xd9ffe9 });
+    for (let i = 0; i < 5; i++) {
+      const m = new THREE.Mesh(pulseGeo, pulseMat.clone());
+      api.add(m);
+      pulses.push({ m, edge: null, t: Math.random() });
+    }
+
+    const vA = new THREE.Vector3(), vB = new THREE.Vector3();
+    return (t, dt) => {
+      // subtle breathing nodes
+      api.group.children.forEach(ch => {
+        if (ch.userData.home) {
+          const s = 1 + Math.sin(t * 2 + ch.userData.home.x * 2 + ch.userData.home.y) * 0.12;
+          ch.scale.setScalar(s);
+          ch.position.copy(ch.userData.home);
+        }
+      });
+      for (const p of pulses) {
+        if (!p.edge || p.t >= 1) {
+          p.edge = edges[(Math.random() * edges.length) | 0];
+          p.t = 0;
+        }
+        p.t += dt * 1.4;
+        const { a, b, line } = p.edge;
+        vA.copy(layers[a]); vB.copy(layers[b]);
+        p.m.position.lerpVectors(vA, vB, Math.min(p.t, 1));
+        const k = Math.sin(Math.min(p.t, 1) * Math.PI);
+        p.m.scale.setScalar(0.8 + k * 0.9);
+        line.material.opacity = 0.22 + k * 0.55;
+      }
+    };
+  }
+});
+
+/* --- 03 / MARK — verdict stamp alternating safe/phish --- */
+makeMiniStage(document.querySelectorAll('.how-row')[2].querySelector('.how-visual'), {
+  camZ: 5,
+  setup(api) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.15, 0.09, 14, 60),
+      new THREE.MeshStandardMaterial({ color: 0x34c98b, emissive: 0x0d3d29, roughness: 0.3 })
+    );
+    api.add(ring);
+
+    const disc = new THREE.Mesh(
+      new THREE.CircleGeometry(0.95, 48),
+      new THREE.MeshBasicMaterial({ color: 0x34c98b, transparent: true, opacity: 0.1, side: THREE.DoubleSide })
+    );
+    api.add(disc);
+
+    // tick marks around the ring
+    const ticks = [];
+    const tg = new THREE.BoxGeometry(0.05, 0.16, 0.05);
+    for (let i = 0; i < 24; i++) {
+      const m = new THREE.Mesh(tg, ring.material);
+      const a = (i / 24) * Math.PI * 2;
+      m.position.set(Math.cos(a) * 1.38, Math.sin(a) * 1.38, 0);
+      m.rotation.z = a;
+      ticks.push(m); api.add(m);
+    }
+
+    let phaseT = 0;
+    return (t, dt) => {
+      phaseT += dt;
+      const isPhish = Math.floor(phaseT / 2.2) % 2 === 1;
+      const col = isPhish ? 0xf43f5e : 0x34c98b;
+      ring.material.color.lerp(new THREE.Color(col), 0.08);
+      disc.material.color.copy(ring.material.color);
+
+      // periodic stamp: scale from 1.5 -> 1 with overshoot each half-cycle
+      const local = phaseT % 2.2;
+      let sc = 1;
+      if (local < 0.45) {
+        const k = local / 0.45;
+        sc = 1.5 - 0.5 * (1 - Math.pow(1 - k, 3)) + Math.sin(k * Math.PI) * 0.06;
+      }
+      ring.scale.setScalar(sc);
+      disc.scale.setScalar(sc);
+      ticks.forEach(m => { m.scale.setScalar(sc * (isPhish ? 0.85 : 1)); m.rotation.z += dt * 0.15; });
+    };
+  }
+});
 
 /* ---- pointer tilt on cards ---- */
 if (!prefersReduced && matchMedia('(pointer: fine)').matches) {

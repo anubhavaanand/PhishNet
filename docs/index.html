@@ -298,7 +298,10 @@ const canvas = document.getElementById('scene-canvas');
 const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isMobile = innerWidth < 720;
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({
+  canvas, antialias: true, alpha: true,
+  powerPreference: 'high-performance'
+});
 renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
 
 const scene = new THREE.Scene();
@@ -484,8 +487,20 @@ function tick() {
   renderer.render(scene, camera);
 }
 
+/* Pause whenever the hero scrolls out of view OR the tab is hidden.
+   Two independent gates; both must allow rendering. */
+let heroInView = true;
+new IntersectionObserver(([entry]) => {
+  heroInView = entry.isIntersecting;
+  entry.isIntersecting ? startLoop() : stopLoop();
+}, { threshold: 0 }).observe(document.querySelector('header'));
+
+document.addEventListener('visibilitychange', () => {
+  (document.hidden || !heroInView) ? stopLoop() : startLoop();
+});
+
 function startLoop() {
-  if (running || prefersReduced || document.hidden) return;
+  if (running || prefersReduced || document.hidden || !heroInView) return;
   running = true;
   rafId = requestAnimationFrame(tick);
 }
@@ -494,11 +509,6 @@ function stopLoop() {
   if (rafId !== null) cancelAnimationFrame(rafId);
   rafId = null;
 }
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) stopLoop();
-  else startLoop();
-});
 
 resize();
 if (prefersReduced) {

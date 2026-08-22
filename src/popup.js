@@ -47,8 +47,19 @@ let currentSettings = {
   autoScan: true,
   highlightLinks: true,
   sensitivityThreshold: 0.7,
-  whitelist: []
+  whitelist: [],
+  theme: 'aloe'
 };
+
+function applyTheme(theme) {
+  const t = ['aloe', 'graphite', 'dusk'].includes(theme) ? theme : 'aloe';
+  document.body.dataset.theme = t;
+  document.querySelectorAll('.swatch').forEach(b => {
+    const on = b.dataset.theme === t;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', String(on));
+  });
+}
 
 /**
  * Initialize popup
@@ -138,6 +149,7 @@ async function loadSettings() {
     if (response) {
       currentSettings = Object.assign(currentSettings, response);
       applySettingsToUI();
+      applyTheme(currentSettings.theme);
       renderWhitelist();
     }
   } catch (error) {
@@ -296,6 +308,15 @@ function setupEventListeners() {
   clearHistoryBtn?.addEventListener('click', async () => {
     await chrome.runtime.sendMessage({ type: 'CLEAR_HISTORY' });
     loadStatsAndHistory();
+  });
+
+  document.querySelectorAll('.swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.theme;
+      currentSettings.theme = theme;
+      applyTheme(theme);
+      updateSetting('theme', theme);
+    });
   });
 
   settingAutoScan?.addEventListener('change', () => updateSetting('autoScan', settingAutoScan.checked));

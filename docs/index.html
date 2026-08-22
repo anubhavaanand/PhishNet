@@ -15,15 +15,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
+    /* Aloe Dark — canonical tokens (mirrored in extension popup) */
     --bg: #070C09;
-    --panel: rgba(17, 24, 39, 0.72);
-    --line: rgba(148, 163, 184, 0.14);
+    --panel: rgba(14, 22, 17, 0.72);
+    --line: rgba(148, 200, 170, 0.13);
     --cyan: #6FD6A0;
     --red: #F43F5E;
-    --green: #10B981;
-    --amber: #FBBF24;
-    --text: #E5E7EB;
-    --muted: #94A3B8;
+    --green: #34C98B;
+    --amber: #F0B247;
+    --text: #ECF4EE;
+    --muted: #9DB4A6;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -61,6 +62,13 @@
 
   /* ---------- HERO ---------- */
   header { position: relative; min-height: 100svh; display: grid; place-items: center; }
+  header::before, header::after {
+    content: ""; position: absolute; border-radius: 50%;
+    filter: blur(100px); z-index: 1; pointer-events: none;
+  }
+  header::before { width: 540px; height: 540px; background: rgba(111, 214, 160, 0.14); top: -160px; left: -120px; }
+  header::after  { width: 480px; height: 480px; background: rgba(244, 63, 94, 0.09); bottom: -170px; right: -110px; }
+  @keyframes pn-sheen-x { from { transform: translateX(-130%) skewX(-18deg); } to { transform: translateX(240%) skewX(-18deg); } }
   #scene-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
   .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 20px; max-width: 900px; pointer-events: none; }
   .hero-content a, .hero-content button { pointer-events: auto; }
@@ -83,11 +91,22 @@
   }
   .hero-sub { margin: 22px auto 0; max-width: 640px; font-size: clamp(15px, 2vw, 19px); line-height: 1.65; color: var(--muted); }
   .hero-ctas { display: flex; gap: 14px; justify-content: center; margin-top: 38px; flex-wrap: wrap; }
-  .btn-primary {
-    padding: 14px 30px; border-radius: 12px; font-weight: 600; font-size: 15px;
-    background: var(--cyan); color: #07130D; text-decoration: none; border: none; cursor: pointer;
-    transition: transform .15s, box-shadow .2s;
+    .btn-primary {
+    position: relative; overflow: hidden;
+    padding: 14px 30px; border-radius: 12px; font-weight: 700; font-size: 15px;
+    background: linear-gradient(135deg, #37A277, var(--cyan) 55%, #23664B);
+    color: #06130D; text-decoration: none; border: 1px solid rgba(151,232,187,.35); cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 26px rgba(46,143,104,.35);
+    transition: transform .15s ease, box-shadow .25s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,.18);
   }
+  .btn-primary::before {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);
+    transform: translateX(-130%) skewX(-18deg); pointer-events: none;
+  }
+  .btn-primary:hover::before { animation: pn-sheen-x .9s ease; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 14px 44px rgba(46,143,104,.45); }
   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(111,214,160,.4); }
   .btn-ghost {
     padding: 14px 30px; border-radius: 12px; font-weight: 500; font-size: 15px;
@@ -139,7 +158,27 @@
   .feature p { color: var(--muted); font-size: 14px; line-height: 1.65; }
 
   /* how it works */
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 46px; counter-reset: step; }
+  .how-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(20px, 4vw, 44px); align-items: center; margin-top: 46px; }
+  @media (max-width: 900px) { .how-grid { grid-template-columns: 1fr; } }
+  .how-visual {
+    position: relative;
+    border: 1px solid var(--line); border-radius: 20px;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(111,214,160,.08), transparent 60%),
+      linear-gradient(180deg, rgba(17,24,39,.55), rgba(11,15,23,.35));
+    overflow: hidden;
+    min-height: 380px;
+  }
+  .how-visual canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  .how-visual canvas:active { cursor: grabbing; }
+  .how-hint {
+    position: absolute; bottom: 14px; left: 0; right: 0; text-align: center;
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+    pointer-events: none;
+  }
+  @media (max-width: 900px) { .how-visual { min-height: 300px; } }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .step {
     border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px;
     background: linear-gradient(180deg, rgba(17,24,39,.5), rgba(17,24,39,.15));
@@ -343,10 +382,17 @@
 <section id="how">
   <div class="sec-label mono">02 — How it works</div>
   <h2>A transformer in your tab, not our cloud.</h2>
-  <div class="steps">
+
+  <div class="how-grid">
+    <div class="how-visual reveal" id="lure-stage">
+      <canvas id="lure-canvas"></canvas>
+      <div class="how-hint mono">drag to spin · red lures get deflected</div>
+    </div>
+    <div class="steps">
     <div class="step"><div class="num">01 / EXTRACT</div><h3>Read the email locally</h3><p>A content script extracts subject, body, links and attachments from the open message in Gmail or Outlook Web.</p></div>
     <div class="step"><div class="num">02 / INFER</div><h3>Classify on-device</h3><p>The text runs through a quantized DistilBERT model via Transformers.js + ONNX Runtime Web inside an isolated offscreen document.</p></div>
     <div class="step"><div class="num">03 / MARK</div><h3>Show the verdict</h3><p>A badge is injected into the header. Suspicious links get highlighted. Click through for full forensic detail.</p></div>
+    </div>
   </div>
 </section>
 
@@ -565,7 +611,7 @@ addEventListener('resize', resize); resize();
 
 /* ---- scroll-reveal ---- */
 const revealables = document.querySelectorAll(
-  '.preview-wrap, section .feature, .step, .privacy-panel, .install-box, .sec-desc, h2'
+  '.preview-wrap, .how-visual, section .feature, .step, .privacy-panel, .install-box, .sec-desc, h2'
 );
 if ('IntersectionObserver' in window && !prefersReduced) {
   const ro = new IntersectionObserver((entries) => {
@@ -576,6 +622,112 @@ if ('IntersectionObserver' in window && !prefersReduced) {
   revealables.forEach(el => { el.classList.add('reveal'); ro.observe(el); });
   // Safety net: never leave content hidden (printing, odd embeds, IO edge cases)
   setTimeout(() => revealables.forEach(el => el.classList.add('in')), 2500);
+}
+
+/* ---- Section 2 scene: draggable lure (torus-knot) deflecting phish shards ---- */
+const lureStage = document.getElementById('lure-stage');
+if (lureStage) {
+  const lCanvas = document.getElementById('lure-canvas');
+  const r2 = new THREE.WebGLRenderer({ canvas: lCanvas, antialias: true, alpha: true });
+  r2.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  const sc2 = new THREE.Scene();
+  const cam2 = new THREE.PerspectiveCamera(50, 1, 0.1, 40);
+  cam2.position.set(0, 0, 6.4);
+  sc2.add(new THREE.AmbientLight(0x8fd9b4, 0.9));
+  const pl = new THREE.PointLight(0x6fd6a0, 30); pl.position.set(4, 5, 6); sc2.add(pl);
+  const pr = new THREE.PointLight(0xf43f5e, 14); pr.position.set(-5, -3, -4); sc2.add(pr);
+
+  // the "net knot" — the filter itself
+  const knot = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(1.55, 0.44, 150, 20),
+    new THREE.MeshBasicMaterial({ color: 0x6fd6a0, wireframe: true, transparent: true, opacity: 0.34 })
+  );
+  const lureGroup = new THREE.Group();
+  lureGroup.add(knot);
+
+  // orbiting shards: red phish lures bounce off, green mail passes through
+  const shardGeo = new THREE.TetrahedronGeometry(0.16);
+  const shards = [];
+  for (let i = 0; i < 26; i++) {
+    const phish = Math.random() < 0.45;
+    const m = new THREE.Mesh(shardGeo, new THREE.MeshStandardMaterial({
+      color: phish ? 0xf43f5e : 0x34c98b,
+      emissive: phish ? 0x4c0519 : 0x064e3b,
+      roughness: 0.45
+    }));
+    const orbit = { r: 2.7 + Math.random() * 0.9, speed: 0.25 + Math.random() * 0.55,
+                    incl: Math.random() * Math.PI, phase: Math.random() * Math.PI * 2 };
+    shards.push({ m, orbit, phish });
+    lureGroup.add(m);
+  }
+  sc2.add(lureGroup);
+
+  // drag-to-spin with inertia
+  let vx = 0.003, vy = 0.0012, dragging = false, lx = 0, ly = 0;
+  lCanvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; lCanvas.setPointerCapture(e.pointerId); });
+  lCanvas.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    vy = (e.clientX - lx) * 0.0035; vx = (e.clientY - ly) * 0.0035;
+    lx = e.clientX; ly = e.clientY;
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => lCanvas.addEventListener(ev, () => dragging = false));
+
+  function sizeLure() {
+    const w = lureStage.clientWidth, h = lureStage.clientHeight;
+    if (!w || !h) return;
+    r2.setSize(w, h, false);
+    cam2.aspect = w / h; cam2.updateProjectionMatrix();
+  }
+  new ResizeObserver(sizeLure).observe(lureStage);
+  sizeLure();
+
+  window.__pnLureRenders = 0;
+  function tickLure() {
+    lureRaf = requestAnimationFrame(tickLure);
+    window.__pnLureRenders++;
+    if (!dragging) { vx *= 0.96; vy *= 0.96; vx += (0 - vx) * 0.01 + 0.00018; }
+    lureGroup.rotation.y += vy; lureGroup.rotation.x += vx;
+    const t = performance.now() / 1000;
+    for (const s of shards) {
+      const o = s.orbit;
+      const a = t * o.speed * 0.4 + o.phase;
+      const x = Math.cos(a) * o.r, z = Math.sin(a) * o.r, y = Math.sin(a * 1.7 + o.incl) * 1.15;
+      const inside = Math.hypot(x, z) < 2.05 && s.phish; // red shards bounce off the knot shell
+      s.m.position.set(x, y, z);
+      s.m.rotation.x += 0.02; s.m.rotation.y += 0.03;
+      const target = inside ? 1.35 : 1;
+      s.m.scale.lerp(new THREE.Vector3(target, target, target), 0.08);
+      s.m.material.opacity = 1;
+    }
+    r2.render(sc2, cam2);
+  }
+  let lureRaf = null, lureRunning = false;
+  function startLure() {
+    if (lureRunning || prefersReduced) return;
+    lureRunning = true;
+    lureRaf = requestAnimationFrame(tickLure);
+  }
+  function stopLure() {
+    lureRunning = false;
+    if (lureRaf !== null) cancelAnimationFrame(lureRaf);
+    lureRaf = null;
+  }
+  new IntersectionObserver(([en]) => en.isIntersecting ? startLure() : stopLure(),
+    { threshold: 0.05 }).observe(lureStage);
+}
+
+/* ---- pointer tilt on cards ---- */
+if (!prefersReduced && matchMedia('(pointer: fine)').matches) {
+  document.querySelectorAll('.feature, .mail-mock, .inspector-mock').forEach(card => {
+    card.style.willChange = 'transform';
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `perspective(900px) rotateX(${(-y * 6).toFixed(2)}deg) rotateY(${(x * 8).toFixed(2)}deg) translateY(-3px)`;
+    });
+    card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+  });
 }
 
 /* ---- loop (single-flight, pausable) ---- */

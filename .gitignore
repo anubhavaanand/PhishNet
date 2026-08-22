@@ -36,3 +36,7 @@ coverage/
 
 # Serena MCP
 .serena/
+
+# Firefox build output
+dist-firefox/
+phishnet-*-firefox.zip

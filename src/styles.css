@@ -32,7 +32,7 @@
 }
 
 .phishnet-badge:focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid #6FD6A0;
   outline-offset: 2px;
 }
 
@@ -42,9 +42,9 @@
 
 /* Safe Badge */
 .phishnet-badge--safe {
-  background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
-  color: #6ee7b7;
-  border: 1px solid #059669;
+  background: linear-gradient(135deg, #12402F 0%, #175039 100%);
+  color: #9FEBC4;
+  border: 1px solid #37A97C;
 }
 
 /* Phishing Badge */
@@ -69,9 +69,9 @@
 
 /* Whitelisted / Trusted Badge */
 .phishnet-badge--trusted {
-  background: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
-  color: #bae6fd;
-  border: 1px solid #0284c7;
+  background: linear-gradient(135deg, #3A2F14 0%, #4A3A18 100%);
+  color: #F0DFA6;
+  border: 1px solid #B08D3E;
 }
 
 /* ==========================================================================
@@ -113,8 +113,8 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: #0f172a;
-  color: #f8fafc;
+  background: #0A120D;
+  color: #ECF4EE;
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 11px;
@@ -122,7 +122,7 @@
   max-width: 280px;
   white-space: pre-wrap;
   z-index: 2147483647;
-  border: 1px solid #334155;
+  border: 1px solid #24352B;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.3);
   line-height: 1.4;
   text-align: left;
@@ -140,7 +140,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: #0f172a;
+  border-top-color: #0A120D;
   z-index: 2147483647;
   pointer-events: none;
 }
@@ -151,7 +151,7 @@
 .phishnet-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(3, 7, 18, 0.75);
+  background: rgba(3, 9, 6, 0.78);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 2147483640;
@@ -171,11 +171,11 @@
   width: 100%;
   max-width: 540px;
   max-height: 85vh;
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: #0A120D;
+  border: 1px solid #24352B;
   border-radius: 16px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  color: #f8fafc;
+  color: #ECF4EE;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
@@ -193,8 +193,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #1e293b;
-  border-bottom: 1px solid #334155;
+  background: #14201A;
+  border-bottom: 1px solid #24352B;
 }
 
 .phishnet-modal-header-left {
@@ -210,13 +210,13 @@
 .phishnet-modal-title {
   font-size: 16px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #ECF4EE;
 }
 
 .phishnet-modal-close {
-  background: #334155;
+  background: #24352B;
   border: none;
-  color: #94a3b8;
+  color: #97AC9F;
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -229,7 +229,7 @@
 }
 
 .phishnet-modal-close:hover {
-  background: #475569;
+  background: #31463B;
   color: #ffffff;
 }
 
@@ -248,8 +248,8 @@
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: 12px;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #14201A;
+  border: 1px solid #24352B;
 }
 
 .phishnet-verdict-banner.phishing {
@@ -258,8 +258,8 @@
 }
 
 .phishnet-verdict-banner.safe {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(111, 214, 160, 0.15);
+  border-color: rgba(111, 214, 160, 0.4);
 }
 
 .phishnet-verdict-banner.uncertain {
@@ -288,8 +288,8 @@
 }
 
 .phishnet-signal-card {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #14201A;
+  border: 1px solid #24352B;
   border-radius: 10px;
   padding: 12px;
   display: flex;
@@ -299,7 +299,7 @@
 
 .phishnet-signal-title {
   font-size: 11px;
-  color: #94a3b8;
+  color: #97AC9F;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -312,8 +312,8 @@
 
 /* Reasons list */
 .phishnet-reasons-card {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #14201A;
+  border: 1px solid #24352B;
   border-radius: 10px;
   padding: 14px;
 }
@@ -321,7 +321,7 @@
 .phishnet-reasons-title {
   font-size: 12px;
   font-weight: 700;
-  color: #cbd5e1;
+  color: #C4D7CB;
   margin-bottom: 8px;
 }
 
@@ -351,8 +351,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #14201A;
+  border: 1px solid #24352B;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 11px;
@@ -368,15 +368,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #38bdf8;
+  color: #6FD6A0;
   flex: 1;
 }
 
 /* Modal footer */
 .phishnet-modal-footer {
   padding: 14px 20px;
-  background: #1e293b;
-  border-top: 1px solid #334155;
+  background: #14201A;
+  border-top: 1px solid #24352B;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -394,27 +394,27 @@
 }
 
 .phishnet-btn--primary {
-  background: #0284c7;
+  background: #2E8F68;
   color: white;
 }
 
 .phishnet-btn--primary:hover {
-  background: #0369a1;
+  background: #257757;
 }
 
 .phishnet-btn--secondary {
-  background: #334155;
-  color: #cbd5e1;
+  background: #24352B;
+  color: #C4D7CB;
 }
 
 .phishnet-btn--secondary:hover {
-  background: #475569;
+  background: #31463B;
   color: white;
 }
 
 .phishnet-btn:focus-visible,
 .phishnet-modal-close:focus-visible {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid #6FD6A0;
   outline-offset: 2px;
 }
 

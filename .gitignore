@@ -33,3 +33,6 @@ coverage/
 .eslintcache
 # Agent/dev tooling
 .jules/
+
+# Serena MCP
+.serena/

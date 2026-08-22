@@ -16,8 +16,8 @@
       min-height: 520px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
       font-size: 13px;
-      color: #f8fafc;
-      background: #0b0f17;
+      color: #ECF4EE;
+      background: #070C09;
       user-select: none;
       display: flex;
       flex-direction: column;
@@ -29,8 +29,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 18px;
-      background: #111827;
-      border-bottom: 1px solid #1f2937;
+      background: #0E1511;
+      border-bottom: 1px solid #17231C;
     }
 
     .brand {
@@ -41,14 +41,14 @@
 
     .brand-icon {
       font-size: 20px;
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(111, 214, 160, 0.1);
       width: 36px;
       height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 10px;
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(111, 214, 160, 0.2);
     }
 
     .brand-text h1 {
@@ -61,7 +61,7 @@
 
     .brand-text p {
       font-size: 11px;
-      color: #38bdf8;
+      color: #6FD6A0;
       font-weight: 500;
     }
 
@@ -74,8 +74,8 @@
       border-radius: 9999px;
       font-size: 11px;
       font-weight: 600;
-      background: #1f2937;
-      border: 1px solid #374151;
+      background: #17231C;
+      border: 1px solid #22332A;
     }
 
     .status-dot {
@@ -85,13 +85,13 @@
     }
 
     .status-dot.loading { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
-    .status-dot.ready { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .status-dot.ready { background: #34C98B; box-shadow: 0 0 8px #34C98B; }
     .status-dot.error { background: #f43f5e; box-shadow: 0 0 8px #f43f5e; }
 
     /* Progress bar */
     .progress-bar {
       height: 3px;
-      background: #111827;
+      background: #0E1511;
       overflow: hidden;
       display: none;
     }
@@ -100,15 +100,15 @@
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      background: linear-gradient(90deg, #2E8F68, #6FD6A0);
       transition: width 0.3s ease;
     }
 
     /* Navigation Tabs */
     .tabs {
       display: flex;
-      background: #111827;
-      border-bottom: 1px solid #1f2937;
+      background: #0E1511;
+      border-bottom: 1px solid #17231C;
       padding: 0 10px;
       gap: 4px;
     }
@@ -118,7 +118,7 @@
       padding: 10px 6px;
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: #97AC9F;
       font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
@@ -130,10 +130,10 @@
       gap: 5px;
     }
 
-    .tab-btn:hover { color: #f8fafc; }
+    .tab-btn:hover { color: #ECF4EE; }
     .tab-btn.active {
-      color: #38bdf8;
-      border-bottom-color: #38bdf8;
+      color: #6FD6A0;
+      border-bottom-color: #6FD6A0;
     }
 
     /* Tab Content Panels */
@@ -154,7 +154,7 @@
       width: 100%;
       min-height: 44px;
       padding: 12px;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      background: linear-gradient(135deg, #2E8F68 0%, #257757 100%);
       color: white;
       border: none;
       border-radius: 10px;
@@ -166,18 +166,18 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+      box-shadow: 0 4px 12px rgba(46, 143, 104, 0.35);
     }
 
     .scan-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      background: linear-gradient(135deg, #257757 0%, #1D5C43 100%);
       transform: translateY(-1px);
     }
 
     button:focus-visible,
     input:focus-visible,
     .toggle input:focus-visible + .toggle-slider {
-      outline: 2px solid #38bdf8;
+      outline: 2px solid #6FD6A0;
       outline-offset: 2px;
     }
 
@@ -189,8 +189,8 @@
 
     /* Result Card */
     .result-card {
-      background: #111827;
-      border: 1px solid #1f2937;
+      background: #0E1511;
+      border: 1px solid #17231C;
       border-radius: 12px;
       padding: 14px;
       display: none;
@@ -201,8 +201,8 @@
     .result-card.visible { display: flex; }
 
     .result-card.safe {
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(111, 214, 160, 0.4);
+      background: rgba(111, 214, 160, 0.08);
     }
 
     .result-card.phishing {
@@ -216,8 +216,8 @@
     }
 
     .result-card.trusted {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(111, 214, 160, 0.4);
+      background: rgba(111, 214, 160, 0.08);
     }
 
     .result-header {
@@ -238,7 +238,7 @@
 
     .result-reasons {
       font-size: 11.5px;
-      color: #cbd5e1;
+      color: #C4D7CB;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -260,8 +260,8 @@
     }
 
     .stat-card {
-      background: #111827;
-      border: 1px solid #1f2937;
+      background: #0E1511;
+      border: 1px solid #17231C;
       border-radius: 10px;
       padding: 12px 8px;
       text-align: center;
@@ -276,7 +276,7 @@
 
     .stat-label {
       font-size: 10px;
-      color: #94a3b8;
+      color: #97AC9F;
       font-weight: 600;
       text-transform: uppercase;
       margin-top: 4px;
@@ -284,8 +284,8 @@
 
     /* History List */
     .history-card {
-      background: #111827;
-      border: 1px solid #1f2937;
+      background: #0E1511;
+      border: 1px solid #17231C;
       border-radius: 12px;
       padding: 12px;
       display: flex;
@@ -302,13 +302,13 @@
     .history-title {
       font-size: 12px;
       font-weight: 700;
-      color: #cbd5e1;
+      color: #C4D7CB;
     }
 
     .clear-btn {
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: #97AC9F;
       font-size: 11px;
       cursor: pointer;
       padding: 2px 6px;
@@ -330,8 +330,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 8px;
-      background: #0b0f17;
-      border: 1px solid #1f2937;
+      background: #070C09;
+      border: 1px solid #17231C;
       border-radius: 8px;
       font-size: 11px;
     }
@@ -341,7 +341,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       max-width: 190px;
-      color: #f1f5f9;
+      color: #E5EFE8;
       font-weight: 500;
     }
 
@@ -353,9 +353,9 @@
     }
 
     .history-tag.phishing { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
-    .history-tag.safe { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .history-tag.safe { background: rgba(111, 214, 160, 0.2); color: #34C98B; }
     .history-tag.uncertain { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-    .history-tag.trusted { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .history-tag.trusted { background: rgba(111, 214, 160, 0.2); color: #6FD6A0; }
 
     /* Whitelist Section */
     .whitelist-input-group {
@@ -366,21 +366,21 @@
     .whitelist-input {
       flex: 1;
       min-height: 38px;
-      background: #111827;
-      border: 1px solid #1f2937;
+      background: #0E1511;
+      border: 1px solid #17231C;
       border-radius: 8px;
-      color: #f8fafc;
+      color: #ECF4EE;
       padding: 0 12px;
       font-size: 12px;
       outline: none;
     }
 
-    .whitelist-input:focus { border-color: #38bdf8; }
+    .whitelist-input:focus { border-color: #6FD6A0; }
 
     .add-btn {
       min-height: 38px;
       padding: 0 14px;
-      background: #0284c7;
+      background: #2E8F68;
       color: white;
       border: none;
       border-radius: 8px;
@@ -402,8 +402,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 8px 12px;
-      background: #111827;
-      border: 1px solid #1f2937;
+      background: #0E1511;
+      border: 1px solid #17231C;
       border-radius: 8px;
       font-size: 12px;
     }
@@ -411,7 +411,7 @@
     .remove-btn {
       background: transparent;
       border: none;
-      color: #94a3b8;
+      color: #97AC9F;
       cursor: pointer;
       font-size: 14px;
     }
@@ -424,7 +424,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 0;
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid #17231C;
     }
 
     .setting-text {
@@ -434,7 +434,7 @@
     }
 
     .setting-label { font-size: 13px; font-weight: 600; }
-    .setting-desc { font-size: 11px; color: #94a3b8; }
+    .setting-desc { font-size: 11px; color: #97AC9F; }
 
     .toggle {
       position: relative;
@@ -447,7 +447,7 @@
     .toggle-slider {
       position: absolute;
       inset: 0;
-      background: #374151;
+      background: #22332A;
       border-radius: 24px;
       cursor: pointer;
       transition: 0.25s;
@@ -463,7 +463,7 @@
       transition: 0.25s;
     }
 
-    .toggle input:checked + .toggle-slider { background: #0284c7; }
+    .toggle input:checked + .toggle-slider { background: #2E8F68; }
     .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
 
     /* Threshold Range */
@@ -485,7 +485,7 @@
       width: 100%;
       height: 6px;
       border-radius: 3px;
-      background: #374151;
+      background: #22332A;
       outline: none;
       -webkit-appearance: none;
     }
@@ -494,9 +494,9 @@
       -webkit-appearance: none;
       width: 18px; height: 18px;
       border-radius: 50%;
-      background: #38bdf8;
+      background: #6FD6A0;
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 10px rgba(111, 214, 160, 0.5);
     }
 
     /* Error Message */
@@ -515,17 +515,17 @@
     /* Footer */
     .footer {
       padding: 10px 16px;
-      background: #111827;
-      border-top: 1px solid #1f2937;
+      background: #0E1511;
+      border-top: 1px solid #17231C;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 11px;
-      color: #64748b;
+      color: #6E8277;
       margin-top: auto;
     }
 
-    .footer a { color: #38bdf8; text-decoration: none; }
+    .footer a { color: #6FD6A0; text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
   </style>
 </head>
@@ -590,7 +590,7 @@
         <div class="stat-label">Threats</div>
       </div>
       <div class="stat-card">
-        <div class="stat-number" style="color: #10b981;" id="statSafe">0</div>
+        <div class="stat-number" style="color: #34C98B;" id="statSafe">0</div>
         <div class="stat-label">Safe</div>
       </div>
     </div>
@@ -601,7 +601,7 @@
         <button class="clear-btn" id="clearHistoryBtn" aria-label="Clear scan history">Clear</button>
       </div>
       <div class="history-list" id="historyList">
-        <div style="font-size: 11px; color: #64748b; text-align: center; padding: 12px 0;">No emails scanned yet</div>
+        <div style="font-size: 11px; color: #6E8277; text-align: center; padding: 12px 0;">No emails scanned yet</div>
       </div>
     </div>
   </div>
@@ -642,10 +642,10 @@
     <div class="threshold-box">
       <div class="threshold-header">
         <span>Sensitivity Threshold</span>
-        <span id="thresholdValue" style="color: #38bdf8;">70%</span>
+        <span id="thresholdValue" style="color: #6FD6A0;">70%</span>
       </div>
       <input type="range" class="threshold-slider" id="thresholdSlider" min="50" max="95" step="5" value="70" aria-label="Sensitivity threshold percentage">
-      <span style="font-size: 10.5px; color: #64748b;">Lower = more alerts, Higher = fewer false positives</span>
+      <span style="font-size: 10.5px; color: #6E8277;">Lower = more alerts, Higher = fewer false positives</span>
     </div>
   </div>
 

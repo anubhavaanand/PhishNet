@@ -15,10 +15,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0B0F17;
+    --bg: #070C09;
     --panel: rgba(17, 24, 39, 0.72);
     --line: rgba(148, 163, 184, 0.14);
-    --cyan: #38BDF8;
+    --cyan: #6FD6A0;
     --red: #F43F5E;
     --green: #10B981;
     --amber: #FBBF24;
@@ -33,7 +33,7 @@
     font-family: 'Space Grotesk', system-ui, sans-serif;
     overflow-x: hidden;
   }
-  ::selection { background: rgba(56,189,248,.35); }
+  ::selection { background: rgba(111,214,160,.35); }
   .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
 
   /* ---------- NAV ---------- */
@@ -54,10 +54,10 @@
     display: inline-flex; align-items: center; gap: 8px;
     min-height: 44px;
     padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
-    color: #06202e; background: var(--cyan); text-decoration: none;
+    color: #07130D; background: var(--cyan); text-decoration: none;
     transition: transform .15s ease, box-shadow .2s;
   }
-  .gh-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(56,189,248,.35); }
+  .gh-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(111,214,160,.35); }
 
   /* ---------- HERO ---------- */
   header { position: relative; min-height: 100svh; display: grid; place-items: center; }
@@ -67,8 +67,8 @@
   .hero-tag {
     display: inline-flex; align-items: center; gap: 8px;
     font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--cyan); border: 1px solid rgba(56,189,248,.3);
-    background: rgba(56,189,248,.08);
+    color: var(--cyan); border: 1px solid rgba(111,214,160,.3);
+    background: rgba(111,214,160,.08);
     padding: 7px 16px; border-radius: 999px; margin-bottom: 26px;
   }
   .hero-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
@@ -78,23 +78,23 @@
     letter-spacing: -0.04em; font-weight: 700;
   }
   h1 .grad {
-    background: linear-gradient(100deg, var(--cyan) 20%, #818CF8 55%, var(--red));
+    background: linear-gradient(100deg, var(--cyan) 20%, #45D0B0 55%, var(--red));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .hero-sub { margin: 22px auto 0; max-width: 640px; font-size: clamp(15px, 2vw, 19px); line-height: 1.65; color: var(--muted); }
   .hero-ctas { display: flex; gap: 14px; justify-content: center; margin-top: 38px; flex-wrap: wrap; }
   .btn-primary {
     padding: 14px 30px; border-radius: 12px; font-weight: 600; font-size: 15px;
-    background: var(--cyan); color: #06202e; text-decoration: none; border: none; cursor: pointer;
+    background: var(--cyan); color: #07130D; text-decoration: none; border: none; cursor: pointer;
     transition: transform .15s, box-shadow .2s;
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(56,189,248,.4); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(111,214,160,.4); }
   .btn-ghost {
     padding: 14px 30px; border-radius: 12px; font-weight: 500; font-size: 15px;
     color: var(--text); text-decoration: none; border: 1px solid var(--line);
     background: var(--panel); transition: border-color .2s, transform .15s;
   }
-  .btn-ghost:hover { border-color: rgba(56,189,248,.5); transform: translateY(-2px); }
+  .btn-ghost:hover { border-color: rgba(111,214,160,.5); transform: translateY(-2px); }
   .scroll-hint { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); z-index: 2; color: var(--muted); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .7; animation: bob 2.4s infinite; }
   @keyframes bob { 50% { transform: translate(-50%, 8px); } }
 
@@ -132,7 +132,7 @@
     background: linear-gradient(90deg, transparent, var(--accent, var(--cyan)), transparent);
     opacity: 0; transition: opacity .3s;
   }
-  .feature:hover { transform: translateY(-4px); border-color: rgba(56,189,248,.35); }
+  .feature:hover { transform: translateY(-4px); border-color: rgba(111,214,160,.35); }
   .feature:hover::before { opacity: 1; }
   .feature .icon { font-size: 26px; margin-bottom: 14px; }
   .feature h3 { font-size: 18px; margin-bottom: 8px; letter-spacing: -0.01em; }
@@ -175,7 +175,7 @@
   .install-body { padding: 26px 22px; display: grid; gap: 14px; }
   .cmd-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .cmd-row .n { font-family: 'IBM Plex Mono', monospace; color: var(--cyan); font-size: 13px; min-width: 22px; }
-  .cmd-row code { font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #A5F3FC; background: rgba(56,189,248,.07); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(56,189,248,.15); }
+  .cmd-row code { font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #A5F3FC; background: rgba(111,214,160,.07); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(111,214,160,.15); }
   .cmd-row span { color: var(--muted); font-size: 13.5px; }
 
   /* ---------- PRODUCT PREVIEW MOCK ---------- */
@@ -206,7 +206,7 @@
   .mail-line { color:var(--muted); line-height:1.65; }
   .bad-link { color:#FCA5A5; text-decoration: underline wavy rgba(244,63,94,.7) 1.5px; text-underline-offset: 3px; }
   .link-warn { font-size:11px; color:#F43F5E; font-weight:700; }
-  .inspector-head { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line); background:rgba(56,189,248,.05); }
+  .inspector-head { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line); background:rgba(111,214,160,.05); }
   .inspector-head b { font-size:13px; letter-spacing:.02em; }
   .verdict { display:flex; justify-content:space-between; align-items:center; padding:18px 20px; background:rgba(244,63,94,.09); border-bottom:1px solid rgba(244,63,94,.25); }
   .verdict .v-label { color:#FDA4AF; font-weight:700; font-size:15px; }
@@ -331,11 +331,11 @@
   <h2>Everything a phisher hopes you don't have.</h2>
   <p class="sec-desc">Inline verdicts, deep link forensics and attachment analysis — rendered straight into the mail client you already use.</p>
   <div class="feature-grid">
-    <div class="feature" style="--accent:#38BDF8"><div class="icon">🛡️</div><h3>Inline Verdict Badges</h3><p>Every opened email gets an instant 🛡️ Safe / ⚠️ Phishing / ❓ Uncertain badge in the message header, with a confidence score.</p></div>
+    <div class="feature" style="--accent:#6FD6A0"><div class="icon">🛡️</div><h3>Inline Verdict Badges</h3><p>Every opened email gets an instant 🛡️ Safe / ⚠️ Phishing / ❓ Uncertain badge in the message header, with a confidence score.</p></div>
     <div class="feature" style="--accent:#F43F5E"><div class="icon">🔍</div><h3>Threat Inspector Modal</h3><p>Click any badge for a full breakdown: urgency score, domain trust, link-by-link safety and attachment risk — all explained.</p></div>
     <div class="feature" style="--accent:#10B981"><div class="icon">🔗</div><h3>Spoofed Link Detection</h3><p>Homograph (Cyrillic lookalikes), punycode, typosquatting via Levenshtein distance against 25+ major brands, and display-text mismatch.</p></div>
     <div class="feature" style="--accent:#FBBF24"><div class="icon">📎</div><h3>Weaponized Attachments</h3><p>Detects executables, scripts, ISO images and deceptive double extensions like <span class="mono">invoice.pdf.exe</span>.</p></div>
-    <div class="feature" style="--accent:#818CF8"><div class="icon">⭐</div><h3>Trusted Senders</h3><p>Whitelist domains and addresses you trust. Whitelisted mail is marked instantly — no re-scan, no noise.</p></div>
+    <div class="feature" style="--accent:#45D0B0"><div class="icon">⭐</div><h3>Trusted Senders</h3><p>Whitelist domains and addresses you trust. Whitelisted mail is marked instantly — no re-scan, no noise.</p></div>
     <div class="feature" style="--accent:#34D399"><div class="icon">📊</div><h3>Local Dashboard</h3><p>Scan history and threat stats stored purely on-device. Clear them any time with one click.</p></div>
   </div>
 </section>
@@ -417,7 +417,7 @@ camera.position.set(0, 1.5, 11);
 
 /* ---- lights ---- */
 scene.add(new THREE.AmbientLight(0x334155, 1.2));
-const key = new THREE.DirectionalLight(0x38bdf8, 1.4); key.position.set(-6, 8, 6); scene.add(key);
+const key = new THREE.DirectionalLight(0x6fd6a0, 1.4); key.position.set(-6, 8, 6); scene.add(key);
 const rim = new THREE.DirectionalLight(0xf43f5e, 0.5); rim.position.set(8, -4, -6); scene.add(rim);
 
 /* ---- THE NET (undulating wireframe bowl) ---- */
@@ -448,7 +448,7 @@ function buildNet() {
 const netGeo = buildNet();
 const basePositions = netGeo.attributes.position.array.slice();
 const net = new THREE.LineSegments(netGeo,
-  new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.28 }));
+  new THREE.LineBasicMaterial({ color: 0x6fd6a0, transparent: true, opacity: 0.28 }));
 const netGroup = new THREE.Group();
 netGroup.add(net);
 netGroup.position.y = 3.1; // mouth of the net frames the headline
@@ -537,14 +537,14 @@ const dp = new Float32Array(DUST * 3);
 for (let i = 0; i < DUST; i++) { dp[i*3] = (Math.random()-.5)*30; dp[i*3+1] = (Math.random()-.5)*18; dp[i*3+2] = (Math.random()-.5)*20; }
 dustGeo.setAttribute('position', new THREE.BufferAttribute(dp, 3));
 const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-  color: 0x38bdf8, size: 0.035, transparent: true, opacity: 0.5,
+  color: 0x6fd6a0, size: 0.035, transparent: true, opacity: 0.5,
   blending: THREE.AdditiveBlending, depthWrite: false }));
 scene.add(dust);
 
 /* ---- glow ring at net mouth ---- */
 const ring = new THREE.Mesh(
   new THREE.TorusGeometry(NET_R * 1.02, 0.03, 8, 90),
-  new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35 }));
+  new THREE.MeshBasicMaterial({ color: 0x6fd6a0, transparent: true, opacity: 0.35 }));
 ring.rotation.x = Math.PI * 0.58;
 ring.position.copy(netGroup.position); // same height as the net mouth
 scene.add(ring);

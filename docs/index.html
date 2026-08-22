@@ -47,7 +47,8 @@
   nav .links a:hover { color: var(--cyan); }
   .gh-btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 9px 18px; border-radius: 10px; font-size: 14px; font-weight: 600;
+    min-height: 44px;
+    padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
     color: #06202e; background: var(--cyan); text-decoration: none;
     transition: transform .15s ease, box-shadow .2s;
   }
@@ -55,7 +56,7 @@
 
   /* ---------- HERO ---------- */
   header { position: relative; min-height: 100svh; display: grid; place-items: center; }
-  #scene-canvas { position: absolute; inset: 0; z-index: 0; }
+  #scene-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
   .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 20px; max-width: 900px; pointer-events: none; }
   .hero-content a, .hero-content button { pointer-events: auto; }
   .hero-tag {
@@ -299,10 +300,12 @@ const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isMobile = innerWidth < 720;
 
 const renderer = new THREE.WebGLRenderer({
-  canvas, antialias: true, alpha: true,
+  canvas, antialias: !isMobile,
+  alpha: true,
   powerPreference: 'high-performance'
 });
-renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
+// Decorative background: cap DPR hard — huge fill-rate savings, visually near-identical
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.2 : 1.25));
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0b0f17, 0.055);
@@ -344,7 +347,10 @@ const netGeo = buildNet();
 const basePositions = netGeo.attributes.position.array.slice();
 const net = new THREE.LineSegments(netGeo,
   new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.28 }));
-scene.add(net);
+const netGroup = new THREE.Group();
+netGroup.add(net);
+netGroup.position.y = 3.1; // mouth of the net frames the headline
+scene.add(netGroup);
 
 /* ---- ENVELOPES drifting into the net ---- */
 const ENV_COUNT = isMobile ? 26 : 54;
@@ -354,7 +360,7 @@ const envMatTemplate = new THREE.MeshStandardMaterial({
   color: 0x10b981, emissive: 0x064e3b, roughness: 0.5
 });
 
-const _sink = new THREE.Vector3(0, -0.6, 0);
+const _sink = new THREE.Vector3(0, 2.6, 0); // net mouth, world space
 const _jitter = new THREE.Vector3();
 
 class Envoy {
@@ -394,7 +400,7 @@ class Envoy {
       this.mesh.rotation.x += this.rot.x * dt;
       this.mesh.rotation.y += this.rot.y * dt;
       this.mesh.position.copy(this.pos);
-      if (this.pos.length() < 1.4) {
+      if (this.pos.distanceTo(_sink) < 1.2) {
         if (this.phish) {
           this.caught = true;
           this.stuckT = 0;
@@ -437,7 +443,9 @@ scene.add(dust);
 const ring = new THREE.Mesh(
   new THREE.TorusGeometry(NET_R * 1.02, 0.03, 8, 90),
   new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35 }));
-ring.rotation.x = Math.PI * 0.58; ring.position.y = 1.5; scene.add(ring);
+ring.rotation.x = Math.PI * 0.58;
+ring.position.copy(netGroup.position); // same height as the net mouth
+scene.add(ring);
 
 /* ---- interaction & resize ---- */
 let mx = 0, my = 0;
@@ -457,22 +465,27 @@ addEventListener('resize', resize); resize();
 const clock = new THREE.Clock();
 let rafId = null;
 let running = false;
+let netFrame = 0;
 
 function tick() {
   rafId = requestAnimationFrame(tick);
+  window.__pnRenders = (window.__pnRenders || 0) + 1; // test/debug hook
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
 
-  // undulate the net
-  const pos = netGeo.attributes.position.array;
-  for (let i = 0; i < pos.length; i += 3) {
-    const x = basePositions[i], y = basePositions[i + 1], z = basePositions[i + 2];
-    const wobble = Math.sin(x * 0.9 + t * 1.4) * 0.14 + Math.cos(z * 1.1 + t * 1.1) * 0.12;
-    pos[i]     = x + wobble * 0.35;
-    pos[i + 1] = y + Math.sin(t * 1.6 + z * 0.5) * 0.18;
-    pos[i + 2] = z + Math.cos(y * 0.7 + t) * 0.1;
+  // undulate the net (every frame on desktop, every 2nd on mobile)
+  netFrame = (netFrame + 1) % (isMobile ? 2 : 1);
+  if (netFrame === 0) {
+    const pos = netGeo.attributes.position.array;
+    for (let i = 0; i < pos.length; i += 3) {
+      const x = basePositions[i], y = basePositions[i + 1], z = basePositions[i + 2];
+      const wobble = Math.sin(x * 0.9 + t * 1.4) * 0.14 + Math.cos(z * 1.1 + t * 1.1) * 0.12;
+      pos[i]     = x + wobble * 0.35;
+      pos[i + 1] = y + Math.sin(t * 1.6 + z * 0.5) * 0.18;
+      pos[i + 2] = z + Math.cos(y * 0.7 + t) * 0.1;
+    }
+    netGeo.attributes.position.needsUpdate = true;
   }
-  netGeo.attributes.position.needsUpdate = true;
 
   for (const e of envoys) e.update(dt, t);
 

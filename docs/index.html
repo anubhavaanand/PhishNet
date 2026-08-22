@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PhishNet — Privacy-First Phishing Detection, On-Device AI</title>
 <meta name="description" content="PhishNet catches phishing emails inside Gmail & Outlook with on-device DistilBERT AI. Zero data leaves your browser.">
+<meta property="og:title" content="PhishNet — Catch phishing before it catches you.">
+<meta property="og:description" content="On-device AI phishing detection for Gmail & Outlook. Zero data leaves your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://anubhavaanand.github.io/PhishNet/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -173,6 +178,53 @@
   .cmd-row code { font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #A5F3FC; background: rgba(56,189,248,.07); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(56,189,248,.15); }
   .cmd-row span { color: var(--muted); font-size: 13.5px; }
 
+  /* ---------- PRODUCT PREVIEW MOCK ---------- */
+  .preview-wrap {
+    margin-top: 60px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; align-items: stretch;
+  }
+  @media (max-width: 860px) { .preview-wrap { grid-template-columns: 1fr; } }
+  .mail-mock, .inspector-mock {
+    border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    background: linear-gradient(180deg, #101725, #0C121D);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  .mock-chrome { display:flex; gap:6px; padding: 11px 14px; border-bottom:1px solid var(--line); background:#0A0F19; }
+  .mock-chrome i { width:10px; height:10px; border-radius:50%; display:block; }
+  .mock-body { padding: 20px 22px; font-size: 13.5px; }
+  .mail-from { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#F43F5E,#7C3AED); display:grid; place-items:center; font-weight:700; font-size:14px; }
+  .mail-from b { color:var(--text); }
+  .mail-from span { color:var(--muted); font-size:12.5px; }
+  .pn-badge-demo {
+    display:inline-flex; align-items:center; gap:5px;
+    background:rgba(244,63,94,.14); color:#FDA4AF;
+    border:1px solid rgba(244,63,94,.4);
+    font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+    box-shadow: 0 0 14px rgba(244,63,94,.22);
+  }
+  .mail-subject { color:var(--text); font-weight:600; margin-bottom:10px; font-size:14.5px; }
+  .mail-line { color:var(--muted); line-height:1.65; }
+  .bad-link { color:#FCA5A5; text-decoration: underline wavy rgba(244,63,94,.7) 1.5px; text-underline-offset: 3px; }
+  .link-warn { font-size:11px; color:#F43F5E; font-weight:700; }
+  .inspector-head { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line); background:rgba(56,189,248,.05); }
+  .inspector-head b { font-size:13px; letter-spacing:.02em; }
+  .verdict { display:flex; justify-content:space-between; align-items:center; padding:18px 20px; background:rgba(244,63,94,.09); border-bottom:1px solid rgba(244,63,94,.25); }
+  .verdict .v-label { color:#FDA4AF; font-weight:700; font-size:15px; }
+  .verdict .v-score { font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:700; color:#F43F5E; text-shadow:0 0 22px rgba(244,63,94,.55); }
+  .sig-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:16px 18px; }
+  .sig { border:1px solid var(--line); border-radius:10px; padding:11px 12px; background:rgba(17,24,39,.5); }
+  .sig small { display:block; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
+  .sig b { font-family:'IBM Plex Mono',monospace; font-size:14.5px; }
+  .sig b.bad { color:#F43F5E; } .sig b.good { color:#10B981; } .sig b.warn { color:#FBBF24; }
+  .reasons { padding: 2px 18px 18px; display:grid; gap:7px; }
+  .reason { display:flex; gap:8px; font-size:12.5px; color:var(--muted); line-height:1.5; }
+  .reason::before { content:"▸"; color:#F43F5E; }
+
+  /* ---------- SCROLL REVEAL ---------- */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .75s cubic-bezier(.2,.7,.3,1), transform .75s cubic-bezier(.2,.7,.3,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity:1; transform:none; transition:none; } }
+
   footer {
     margin-top: clamp(80px, 12vh, 140px); border-top: 1px solid var(--line);
     padding: 44px 20px calc(60px + env(safe-area-inset-bottom)); text-align: center; color: var(--muted); font-size: 14px;
@@ -195,6 +247,7 @@
 <nav>
   <div class="brand"><span class="logo">🎣</span> PhishNet</div>
   <div class="links">
+    <a href="#preview">Demo</a>
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
     <a href="#privacy">Privacy</a>
@@ -223,6 +276,55 @@
   <div class="stat"><b class="amber">~200 ms</b><span>Per-email analysis</span></div>
   <div class="stat"><b class="red">4-class</b><span>DistilBERT classifier</span></div>
 </div>
+
+<section id="preview" aria-label="Product preview">
+  <div class="sec-label mono">See it in action</div>
+  <h2>Your inbox, with a sixth sense.</h2>
+  <p class="sec-desc">Every opened email gets an instant verdict. One click opens the full forensic breakdown — no tabs, no uploads, no waiting.</p>
+
+  <div class="preview-wrap reveal">
+    <!-- Email mock -->
+    <div class="mail-mock">
+      <div class="mock-chrome"><i style="background:#F43F5E"></i><i style="background:#FBBF24"></i><i style="background:#10B981"></i></div>
+      <div class="mock-body">
+        <div class="mail-from">
+          <span class="avatar">P</span>
+          <b>PayPal&nbsp;Support</b>
+          <span>&lt;security@paypa1-support.tk&gt;</span>
+          <span class="pn-badge-demo">⚠️ Phishing · 91%</span>
+        </div>
+        <div class="mail-subject">Action Required: Verify Your Account Now</div>
+        <p class="mail-line">
+          Dear customer, your account has been <b style="color:#FDA4AF">suspended</b>.
+          Confirm your identity within 24 hours at
+          <a class="bad-link" href="#" onclick="return false">secure-verify.tk/login</a> <span class="link-warn">⚠️</span><br>
+          or permanently lose access to your funds.
+        </p>
+        <p style="margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:11.5px; color:var(--muted)">
+          🎣 PhishNet analyzed this email locally in 0.4s — no data left your browser.
+        </p>
+      </div>
+    </div>
+
+    <!-- Threat Inspector mock -->
+    <div class="inspector-mock">
+      <div class="inspector-head"><b>🎣 PhishNet Threat Inspector</b><span class="mono" style="color:var(--muted);font-size:11px">0.4s · on-device</span></div>
+      <div class="verdict"><span class="v-label">⚠️ Phishing Threat Detected</span><span class="v-score">91%</span></div>
+      <div class="sig-grid">
+        <div class="sig"><small>Urgency panic</small><b class="bad">30/40</b></div>
+        <div class="sig"><small>Domain trust</small><b class="bad">45/45</b></div>
+        <div class="sig"><small>Link threats</small><b class="bad">40/45</b></div>
+        <div class="sig"><small>Attachments</small><b class="good">Clean</b></div>
+      </div>
+      <div class="reasons">
+        <div class="reason">Typosquatted lookalike domain for 'paypal' (paypa1)</div>
+        <div class="reason">Homograph / deceptive characters in domain (.tk TLD)</div>
+        <div class="reason">Destination hides behind display text</div>
+        <div class="reason">Urgency signals: suspended, verify, confirm</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section id="features">
   <div class="sec-label mono">01 — Capabilities</div>
@@ -460,6 +562,21 @@ function resize() {
   renderer.setSize(w, h, false);
 }
 addEventListener('resize', resize); resize();
+
+/* ---- scroll-reveal ---- */
+const revealables = document.querySelectorAll(
+  '.preview-wrap, section .feature, .step, .privacy-panel, .install-box, .sec-desc, h2'
+);
+if ('IntersectionObserver' in window && !prefersReduced) {
+  const ro = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (en.isIntersecting) { en.target.classList.add('in'); ro.unobserve(en.target); }
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  revealables.forEach(el => { el.classList.add('reveal'); ro.observe(el); });
+  // Safety net: never leave content hidden (printing, odd embeds, IO edge cases)
+  setTimeout(() => revealables.forEach(el => el.classList.add('in')), 2500);
+}
 
 /* ---- loop (single-flight, pausable) ---- */
 const clock = new THREE.Clock();

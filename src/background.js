@@ -211,12 +211,22 @@ async function handleIncomingMessage(message, sender) {
       return { success: false, error: 'No active tab found' };
     }
 
-    case 'RELOAD_MODEL':
+    case 'RELOAD_MODEL': {
       modelStatus = 'loading';
       modelLoadProgress = 0;
       broadcastModelStatus();
+      // Close the existing offscreen document so a fresh one re-runs init()
+      try {
+        if (chrome.offscreen?.closeDocument && await chrome.offscreen.hasDocument()) {
+          await chrome.offscreen.closeDocument();
+        }
+      } catch (e) {
+        logger.debug('closeDocument during reload:', e?.message);
+      }
+      offscreenDocumentCreated = false;
       await createOffscreenDocument();
       return { success: true, status: modelStatus };
+    }
 
     // Offscreen document lifecycle messages
     case 'OFFSCREEN_READY':
@@ -333,13 +343,25 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
     await saveSettings(settings);
   }
-  init();
+  initOnce();
 });
 
 chrome.runtime.onStartup.addListener(() => {
   logger.debug('Browser startup');
-  init();
+  initOnce();
 });
 
+// Guard against double-init (top-level + onInstalled/onStartup firing together)
+let initPromise = null;
+function initOnce() {
+  if (!initPromise) {
+    initPromise = init().catch((e) => {
+      logger.error('Background init failed:', e);
+      initPromise = null; // Allow retry on next wake
+    });
+  }
+  return initPromise;
+}
+
 // Initialize on background start
-init();
+initOnce();

@@ -172,6 +172,43 @@ test('XSS payloads in URLs are safely text-encoded via textContent in DOM elemen
   assert.strictEqual(urlSpan.textContent, xssHref);
 });
 
+// 6. Official Domain False-Positive Regression Tests
+console.log('\n6. Official Domain False-Positive Tests:');
+test('Regional official brand domains are NOT flagged', () => {
+  const legitDomains = ['google.co.uk', 'amazon.de', 'microsoft.fr', 'apple.co.in', 'mail.google.com'];
+  for (const d of legitDomains) {
+    assert.strictEqual(checkLookalikeBrand(d), null, `${d} must not be flagged as lookalike`);
+    assert.strictEqual(isUrlSuspicious('https://' + d + '/'), false, `${d} URL must not be suspicious`);
+  }
+});
+
+test('Microsoft official auth domains are NOT flagged', () => {
+  for (const d of ['login.microsoftonline.com', 'outlook.office365.com']) {
+    assert.strictEqual(checkLookalikeBrand(d), null, `${d} must not be flagged`);
+    assert.strictEqual(isUrlSuspicious('https://' + d), false, `${d} URL must not be suspicious`);
+  }
+});
+
+test('Google account hosts with keyword names are NOT flagged', () => {
+  for (const d of ['myaccount.google.com', 'accounts.google.com']) {
+    assert.strictEqual(isUrlSuspicious('https://' + d + '/signin'), false, `${d} must not be flagged`);
+  }
+});
+
+test('Actual spoofed domains ARE still flagged', () => {
+  const spoofs = [
+    'paypal.com.attacker.xyz',
+    'paypa1.com',
+    'secure-paypal-verify.com'
+  ];
+  for (const d of spoofs) {
+    assert.ok(
+      checkLookalikeBrand(d) !== null || isUrlSuspicious('https://' + d + '/'),
+      `${d} must be flagged`
+    );
+  }
+});
+
 console.log(`\n===================================`);
 console.log(`Tests Passed: ${passedTests} | Failed: ${failedTests}`);
 console.log(`===================================\n`);

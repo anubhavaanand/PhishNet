@@ -39,6 +39,54 @@
   const IP_HOSTNAME_REGEX = /^\d+\.\d+\.\d+\.\d+$/;
   const MULTI_DIGIT_REGEX = /[0-9]{4,}/;
 
+  // Common multi-part public suffixes for registrable-domain extraction
+  const MULTI_PART_SUFFIXES = [
+    'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'co.jp', 'ne.jp', 'or.jp',
+    'com.au', 'net.au', 'org.au', 'com.br', 'com.mx', 'com.ar',
+    'co.in', 'net.in', 'org.in', 'com.cn', 'com.hk', 'co.nz',
+    'com.sg', 'com.tr', 'co.za', 'com.my', 'co.kr'
+  ];
+
+  // Registrable domains that belong to major brands under non-obvious names
+  const KNOWN_OFFICIAL_DOMAINS = new Set([
+    'microsoftonline.com', 'live.com', 'office.com', 'outlook.com',
+    'msn.com', 'windowsupdate.com', 'googlemail.com', 'youtube.com',
+    'gmail.com', 'youtu.be'
+  ]);
+
+  function getRegistrableDomain(domain) {
+    const parts = String(domain || '').toLowerCase().split('.');
+    for (const suffix of MULTI_PART_SUFFIXES) {
+      if (parts.length > 2 && domain.endsWith('.' + suffix)) {
+        return parts.slice(-3).join('.');
+      }
+    }
+    return parts.slice(-2).join('.');
+  }
+
+  /**
+   * True if hostname belongs to a well-known brand (any TLD / subdomain depth)
+   */
+  function isOfficialBrandHost(hostname) {
+    if (!hostname) return false;
+    const host = String(hostname).toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').split(':')[0];
+    const registrable = getRegistrableDomain(host);
+    if (KNOWN_OFFICIAL_DOMAINS.has(registrable)) return true;
+
+    const regParts = registrable.split('.');
+    // Single-suffix registrable: brand is the second-level label (amazon.de -> 'amazon')
+    const secondLevel = regParts.length >= 2 ? regParts[regParts.length - 2] : registrable;
+    if (HIGH_PROFILE_BRANDS.includes(secondLevel)) return true;
+    // Multi-part suffix registrable: brand is the first label (google.co.uk -> 'google')
+    if (regParts.length === 3) {
+      const maybeSuffix = regParts.slice(-2).join('.');
+      if (MULTI_PART_SUFFIXES.includes(maybeSuffix) && HIGH_PROFILE_BRANDS.includes(regParts[0])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Levenshtein Distance for typo-squatting detection
    * Optimized to use two 1D row buffers instead of full 2D matrix allocation (O(min(N,M)) space)
@@ -87,22 +135,22 @@
   function checkLookalikeBrand(domain) {
     if (!domain) return null;
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').split(':')[0];
+
+    // Homograph check first (catches pаypal.com even though it "matches" the brand)
+    if (detectHomographAttack(cleanDomain)) {
+      return { brand: 'unknown', type: 'homograph', reason: `Homograph / deceptive characters in domain (${cleanDomain})` };
+    }
+
+    // Official domain exemption: brand as registrable second-level label, any TLD
+    // (google.co.uk, amazon.de, mail.google.com) or known official alternate domains
+    if (isOfficialBrandHost(cleanDomain)) {
+      return null;
+    }
+
     const parts = cleanDomain.split('.');
     const mainName = parts.length > 1 ? parts[parts.length - 2] : cleanDomain;
 
     for (const brand of HIGH_PROFILE_BRANDS) {
-      // Official exact match is safe
-      if (cleanDomain === `${brand}.com` || cleanDomain.endsWith(`.${brand}.com`) ||
-          cleanDomain === `${brand}.org` || cleanDomain.endsWith(`.${brand}.org`) ||
-          cleanDomain === `${brand}.net` || cleanDomain.endsWith(`.${brand}.net`)) {
-        return null;
-      }
-
-      // Check homograph
-      if (detectHomographAttack(cleanDomain)) {
-        return { brand, type: 'homograph', reason: `Homograph / deceptive characters impersonating ${brand}` };
-      }
-
       // Subdomain deception (e.g., paypal.com.attacker.xyz)
       if (cleanDomain.includes(brand) && !cleanDomain.endsWith(`.${brand}.com`)) {
         return { brand, type: 'subdomain_deception', reason: `Brand '${brand}' deceptive use in subdomain or domain` };
@@ -169,7 +217,24 @@
       if (detectHomographAttack(domain)) return true;
 
       // Lookalike brand check
-      if (checkLookalikeBrand(domain)) return true;
+      const lookalike = checkLookalikeBrand(domain);
+      if (lookalike) return true;
+
+      // Official brand hosts are exempt from generic heuristics below
+      // (prevents myaccount.google.com / login.microsoftonline.com false positives)
+      const brandHost = isOfficialBrandHost(domain);
+
+      // URL shorteners (brand-owned shorteners t.co/goo.gl excluded)
+      const shorteners = UTILITY_SELECTORS.urlShorteners || [
+        'bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd',
+        'buff.ly', 'adf.ly', 'bc.vc', 'shorte.st', 'clck.ru', 'cutt.ly', 'rb.gy'
+      ];
+      for (const s of shorteners) {
+        if ((s === 't.co' || s === 'goo.gl') && brandHost) continue;
+        if (domain === s || domain.endsWith('.' + s)) return true;
+      }
+
+      if (brandHost) return false;
 
       // Suspicious TLDs
       const suspiciousTlds = UTILITY_SELECTORS.suspiciousTlds || [
@@ -178,15 +243,6 @@
       ];
       for (const tld of suspiciousTlds) {
         if (domain.endsWith(tld)) return true;
-      }
-
-      // URL shorteners
-      const shorteners = UTILITY_SELECTORS.urlShorteners || [
-        'bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd',
-        'buff.ly', 'adf.ly', 'bc.vc', 'shorte.st', 'clck.ru', 'cutt.ly', 'rb.gy'
-      ];
-      for (const s of shorteners) {
-        if (domain === s || domain.endsWith('.' + s)) return true;
       }
 
       // IP address hostname using pre-compiled regex

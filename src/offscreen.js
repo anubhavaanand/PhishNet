@@ -147,12 +147,18 @@ async function runInference(text, settings = {}) {
     };
   })();
 
-  // Race against timeout (15 seconds)
+  // Race against timeout (15 seconds); always clear the timer to avoid
+  // unhandled rejections when inference completes first
+  let timerId;
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => reject(new Error('Inference timeout')), 15000);
+    timerId = setTimeout(() => reject(new Error('Inference timeout')), 15000);
   });
 
-  return Promise.race([inferencePromise, timeoutPromise]);
+  try {
+    return await Promise.race([inferencePromise, timeoutPromise]);
+  } finally {
+    clearTimeout(timerId);
+  }
 }
 
 /**

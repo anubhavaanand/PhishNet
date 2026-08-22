@@ -26,10 +26,11 @@
   // State
   let currentSelectors = null;
   let observer = null;
-  let lastScannedEmailId = null;
   let scanDebounceTimer = null;
   let lastUrl = typeof location !== 'undefined' ? location.href : '';
   const activeScans = new Set();
+  const scannedEmailIds = new Set();
+  const MAX_TRACKED_IDS = 50;
   const SCAN_DEBOUNCE_MS = 400;
 
   /**
@@ -67,7 +68,7 @@
       const currentUrl = location.href;
       if (currentUrl !== lastUrl) {
         lastUrl = currentUrl;
-        lastScannedEmailId = null;
+        scannedEmailIds.clear();
         debouncedCheckForNewEmails(800);
         return;
       }
@@ -106,7 +107,11 @@
 
     messageElements.forEach((element) => {
       const emailId = getEmailId(element);
-      if (emailId && emailId !== lastScannedEmailId && !activeScans.has(emailId)) {
+      if (emailId && !scannedEmailIds.has(emailId) && !activeScans.has(emailId)) {
+        scannedEmailIds.add(emailId);
+        if (scannedEmailIds.size > MAX_TRACKED_IDS) {
+          scannedEmailIds.delete(scannedEmailIds.values().next().value);
+        }
         scanEmail(element, emailId);
       }
     });
@@ -157,8 +162,6 @@
         logger.debug('Email content too short, skipping scan');
         return null;
       }
-
-      lastScannedEmailId = emailId;
 
       // Check user settings & whitelist
       let settings = { autoScan: true, sensitivityThreshold: 0.7, highlightLinks: true, showTooltip: true, whitelist: [] };
@@ -644,7 +647,7 @@
     const closeBtn = document.createElement('button');
     closeBtn.className = 'phishnet-btn phishnet-btn--primary';
     closeBtn.textContent = 'Close';
-    closeBtn.addEventListener('click', () => backdrop.remove());
+    closeBtn.addEventListener('click', closeModal);
 
     footer.appendChild(whitelistBtn);
     footer.appendChild(closeBtn);
@@ -655,18 +658,22 @@
     backdrop.appendChild(card);
 
     backdrop.addEventListener('click', (e) => {
-      if (e.target === backdrop) backdrop.remove();
+      if (e.target === backdrop) closeModal();
     });
 
-    document.addEventListener('keydown', function escListener(e) {
-      if (e.key === 'Escape') {
-        backdrop.remove();
-        document.removeEventListener('keydown', escListener);
-      }
-    });
+    function onKeyEscape(e) {
+      if (e.key === 'Escape') closeModal();
+    }
+
+    function closeModal() {
+      document.removeEventListener('keydown', onKeyEscape);
+      backdrop.remove();
+    }
+
+    document.addEventListener('keydown', onKeyEscape);
 
     (document.body || document.documentElement).appendChild(backdrop);
-    document.getElementById('phishnetModalCloseBtn')?.addEventListener('click', () => backdrop.remove());
+    document.getElementById('phishnetModalCloseBtn')?.addEventListener('click', closeModal);
   }
 
   /**
@@ -740,13 +747,6 @@
         } else {
           sendResponse({ success: false, error: 'No opened email found on page' });
         }
-        return true;
-      }
-
-      case 'GET_SETTINGS': {
-        chrome.runtime.sendMessage({ type: 'GET_SETTINGS' }).then(sendResponse).catch(() => {
-          sendResponse({ autoScan: true, sensitivityThreshold: 0.7, highlightLinks: true });
-        });
         return true;
       }
 

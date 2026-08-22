@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishNet — Privacy-First Phishing Detection, On-Device AI</title>
+<meta name="description" content="PhishNet catches phishing emails inside Gmail & Outlook with on-device DistilBERT AI. Zero data leaves your browser.">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F17;
+    --panel: rgba(17, 24, 39, 0.72);
+    --line: rgba(148, 163, 184, 0.14);
+    --cyan: #38BDF8;
+    --red: #F43F5E;
+    --green: #10B981;
+    --amber: #FBBF24;
+    --text: #E5E7EB;
+    --muted: #94A3B8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(56,189,248,.35); }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+
+  /* ---------- NAV ---------- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px clamp(20px, 5vw, 64px);
+    backdrop-filter: blur(12px);
+    background: linear-gradient(to bottom, rgba(11,15,23,.85), rgba(11,15,23,.4));
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+  .brand .logo { width: 30px; height: 30px; display: grid; place-items: center; background: linear-gradient(135deg, var(--cyan), #6366F1); border-radius: 8px; font-size: 16px; }
+  nav .links { display: flex; gap: 28px; font-size: 14px; color: var(--muted); }
+  nav .links a { color: inherit; text-decoration: none; transition: color .2s; }
+  nav .links a:hover { color: var(--cyan); }
+  .gh-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 10px; font-size: 14px; font-weight: 600;
+    color: #06202e; background: var(--cyan); text-decoration: none;
+    transition: transform .15s ease, box-shadow .2s;
+  }
+  .gh-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(56,189,248,.35); }
+
+  /* ---------- HERO ---------- */
+  header { position: relative; min-height: 100svh; display: grid; place-items: center; }
+  #scene-canvas { position: absolute; inset: 0; z-index: 0; }
+  .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 20px; max-width: 900px; pointer-events: none; }
+  .hero-content a, .hero-content button { pointer-events: auto; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--cyan); border: 1px solid rgba(56,189,248,.3);
+    background: rgba(56,189,248,.08);
+    padding: 7px 16px; border-radius: 999px; margin-bottom: 26px;
+  }
+  .hero-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: .4; } }
+  h1 {
+    font-size: clamp(44px, 8vw, 92px); line-height: 1.02;
+    letter-spacing: -0.04em; font-weight: 700;
+  }
+  h1 .grad {
+    background: linear-gradient(100deg, var(--cyan) 20%, #818CF8 55%, var(--red));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero-sub { margin: 22px auto 0; max-width: 640px; font-size: clamp(15px, 2vw, 19px); line-height: 1.65; color: var(--muted); }
+  .hero-ctas { display: flex; gap: 14px; justify-content: center; margin-top: 38px; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 14px 30px; border-radius: 12px; font-weight: 600; font-size: 15px;
+    background: var(--cyan); color: #06202e; text-decoration: none; border: none; cursor: pointer;
+    transition: transform .15s, box-shadow .2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(56,189,248,.4); }
+  .btn-ghost {
+    padding: 14px 30px; border-radius: 12px; font-weight: 500; font-size: 15px;
+    color: var(--text); text-decoration: none; border: 1px solid var(--line);
+    background: var(--panel); transition: border-color .2s, transform .15s;
+  }
+  .btn-ghost:hover { border-color: rgba(56,189,248,.5); transform: translateY(-2px); }
+  .scroll-hint { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); z-index: 2; color: var(--muted); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .7; animation: bob 2.4s infinite; }
+  @keyframes bob { 50% { transform: translate(-50%, 8px); } }
+
+  /* ---------- STATS STRIP ---------- */
+  .stats-strip {
+    position: relative; z-index: 2;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px;
+    max-width: 1100px; margin: -70px auto 0; padding: 0 20px;
+  }
+  .stat {
+    background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(10px);
+    padding: 26px 20px; text-align: center;
+  }
+  .stat:first-child { border-radius: 16px 0 0 16px; }
+  .stat:last-child { border-radius: 0 16px 16px 0; }
+  .stat b { display: block; font-size: clamp(26px, 4vw, 38px); letter-spacing: -0.03em; }
+  .stat b.cyan { color: var(--cyan); } .stat b.green { color: var(--green); } .stat b.red { color: var(--red); } .stat b.amber { color: var(--amber); }
+  .stat span { font-size: 12px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+
+  /* ---------- SECTIONS ---------- */
+  section { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: clamp(80px, 12vh, 130px) 20px 0; }
+  .sec-label { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); display: flex; align-items: center; gap: 14px; }
+  .sec-label::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+  h2 { font-size: clamp(30px, 5vw, 48px); letter-spacing: -0.03em; margin: 18px 0 14px; }
+  .sec-desc { color: var(--muted); max-width: 620px; font-size: 17px; line-height: 1.65; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 46px; }
+  .feature {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 26px 24px; transition: transform .25s ease, border-color .25s;
+    position: relative; overflow: hidden;
+  }
+  .feature::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent, var(--cyan)), transparent);
+    opacity: 0; transition: opacity .3s;
+  }
+  .feature:hover { transform: translateY(-4px); border-color: rgba(56,189,248,.35); }
+  .feature:hover::before { opacity: 1; }
+  .feature .icon { font-size: 26px; margin-bottom: 14px; }
+  .feature h3 { font-size: 18px; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .feature p { color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+  /* how it works */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 46px; counter-reset: step; }
+  .step {
+    border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px;
+    background: linear-gradient(180deg, rgba(17,24,39,.5), rgba(17,24,39,.15));
+  }
+  .step .num { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--cyan); margin-bottom: 16px; }
+  .step h3 { font-size: 18px; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  .step code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--amber); background: rgba(251,191,36,.08); padding: 2px 7px; border-radius: 5px; }
+
+  /* privacy */
+  .privacy-panel {
+    margin-top: 46px; border: 1px solid rgba(16,185,129,.25); border-radius: 20px;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(16,185,129,.09), transparent 55%),
+      radial-gradient(ellipse at 90% 100%, rgba(99,102,241,.07), transparent 50%),
+      var(--panel);
+    padding: clamp(30px, 5vw, 56px);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+  }
+  .privacy-panel h2 { margin-top: 0; }
+  .checks { list-style: none; display: grid; gap: 14px; align-content: center; }
+  .checks li { display: flex; gap: 12px; align-items: flex-start; color: var(--muted); font-size: 15px; line-height: 1.5; }
+  .checks .chk { color: var(--green); font-weight: 700; }
+  @media (max-width: 800px) { .privacy-panel { grid-template-columns: 1fr; } }
+
+  /* install */
+  .install-box {
+    margin-top: 46px; border: 1px solid var(--line); border-radius: 16px;
+    background: #0D1420; overflow: hidden;
+  }
+  .install-head { display: flex; gap: 7px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .install-head i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .install-body { padding: 26px 22px; display: grid; gap: 14px; }
+  .cmd-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .cmd-row .n { font-family: 'IBM Plex Mono', monospace; color: var(--cyan); font-size: 13px; min-width: 22px; }
+  .cmd-row code { font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; color: #A5F3FC; background: rgba(56,189,248,.07); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(56,189,248,.15); }
+  .cmd-row span { color: var(--muted); font-size: 13.5px; }
+
+  footer {
+    margin-top: clamp(80px, 12vh, 140px); border-top: 1px solid var(--line);
+    padding: 44px 20px calc(60px + env(safe-area-inset-bottom)); text-align: center; color: var(--muted); font-size: 14px;
+    position: relative; z-index: 2;
+  }
+  footer .f-brand { font-weight: 700; color: var(--text); font-size: 16px; margin-bottom: 8px; }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .f-links { display: flex; gap: 22px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+
+  @media (max-width: 640px) {
+    nav .links { display: none; }
+    .stats-strip { grid-template-columns: repeat(2, 1fr); margin-top: -50px; }
+    .stat:first-child, .stat:last-child { border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand"><span class="logo">🎣</span> PhishNet</div>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#install">Install</a>
+  </div>
+  <a class="gh-btn" href="https://github.com/anubhavaanand/PhishNet" target="_blank" rel="noopener">★ GitHub</a>
+</nav>
+
+<header>
+  <canvas id="scene-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-tag mono"><span class="dot"></span> On-device AI · Zero data leaves your browser</div>
+    <h1>Catch phishing<br>before it <span class="grad">catches you.</span></h1>
+    <p class="hero-sub">PhishNet scans every email in Gmail &amp; Outlook with a DistilBERT transformer running entirely inside your browser. No servers. No tracking. No excuses.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="#install">Install free →</a>
+      <a class="btn-ghost" href="https://github.com/anubhavaanand/PhishNet" target="_blank" rel="noopener">View source</a>
+    </div>
+  </div>
+  <div class="scroll-hint mono">Scroll</div>
+</header>
+
+<div class="stats-strip">
+  <div class="stat"><b class="cyan">100%</b><span>On-device inference</span></div>
+  <div class="stat"><b class="green">0 bytes</b><span>Email data uploaded</span></div>
+  <div class="stat"><b class="amber">~200 ms</b><span>Per-email analysis</span></div>
+  <div class="stat"><b class="red">4-class</b><span>DistilBERT classifier</span></div>
+</div>
+
+<section id="features">
+  <div class="sec-label mono">01 — Capabilities</div>
+  <h2>Everything a phisher hopes you don't have.</h2>
+  <p class="sec-desc">Inline verdicts, deep link forensics and attachment analysis — rendered straight into the mail client you already use.</p>
+  <div class="feature-grid">
+    <div class="feature" style="--accent:#38BDF8"><div class="icon">🛡️</div><h3>Inline Verdict Badges</h3><p>Every opened email gets an instant 🛡️ Safe / ⚠️ Phishing / ❓ Uncertain badge in the message header, with a confidence score.</p></div>
+    <div class="feature" style="--accent:#F43F5E"><div class="icon">🔍</div><h3>Threat Inspector Modal</h3><p>Click any badge for a full breakdown: urgency score, domain trust, link-by-link safety and attachment risk — all explained.</p></div>
+    <div class="feature" style="--accent:#10B981"><div class="icon">🔗</div><h3>Spoofed Link Detection</h3><p>Homograph (Cyrillic lookalikes), punycode, typosquatting via Levenshtein distance against 25+ major brands, and display-text mismatch.</p></div>
+    <div class="feature" style="--accent:#FBBF24"><div class="icon">📎</div><h3>Weaponized Attachments</h3><p>Detects executables, scripts, ISO images and deceptive double extensions like <span class="mono">invoice.pdf.exe</span>.</p></div>
+    <div class="feature" style="--accent:#818CF8"><div class="icon">⭐</div><h3>Trusted Senders</h3><p>Whitelist domains and addresses you trust. Whitelisted mail is marked instantly — no re-scan, no noise.</p></div>
+    <div class="feature" style="--accent:#34D399"><div class="icon">📊</div><h3>Local Dashboard</h3><p>Scan history and threat stats stored purely on-device. Clear them any time with one click.</p></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="sec-label mono">02 — How it works</div>
+  <h2>A transformer in your tab, not our cloud.</h2>
+  <div class="steps">
+    <div class="step"><div class="num">01 / EXTRACT</div><h3>Read the email locally</h3><p>A content script extracts subject, body, links and attachments from the open message in Gmail or Outlook Web.</p></div>
+    <div class="step"><div class="num">02 / INFER</div><h3>Classify on-device</h3><p>The text runs through a quantized DistilBERT model via Transformers.js + ONNX Runtime Web inside an isolated offscreen document.</p></div>
+    <div class="step"><div class="num">03 / MARK</div><h3>Show the verdict</h3><p>A badge is injected into the header. Suspicious links get highlighted. Click through for full forensic detail.</p></div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="sec-label mono">03 — Privacy</div>
+  <div class="privacy-panel">
+    <div>
+      <h2>Your inbox never leaves home.</h2>
+      <p class="sec-desc" style="margin-top:6px">Most "email security" tools work by forwarding your mail to their servers. PhishNet flips the model: the ~50 MB model downloads once, then every scan happens on your silicon. We couldn't read your email if we wanted to.</p>
+    </div>
+    <ul class="checks">
+      <li><span class="chk">✓</span> Zero network requests during inference</li>
+      <li><span class="chk">✓</span> No analytics, telemetry or tracking of any kind</li>
+      <li><span class="chk">✓</span> Model weights cached locally after first load</li>
+      <li><span class="chk">✓</span> History &amp; whitelist stored only in browser storage</li>
+      <li><span class="chk">✓</span> Fully open source — audit every line</li>
+      <li><span class="chk">✓</span> Works offline once cached</li>
+    </ul>
+  </div>
+</section>
+
+<section id="install">
+  <div class="sec-label mono">04 — Install</div>
+  <h2>Live in thirty seconds.</h2>
+  <div class="install-box">
+    <div class="install-head">
+      <i style="background:#F43F5E"></i><i style="background:#FBBF24"></i><i style="background:#10B981"></i>
+    </div>
+    <div class="install-body">
+      <div class="cmd-row"><span class="n">$1</span><code>git clone https://github.com/anubhavaanand/PhishNet.git</code><span>grab the source</span></div>
+      <div class="cmd-row"><span class="n">$2</span><code>chrome://extensions</code><span>enable Developer mode</span></div>
+      <div class="cmd-row"><span class="n">$3</span><code>Load unpacked → select ./PhishNet</code><span>open an email &amp; watch the badge appear</span></div>
+      <div class="cmd-row"><span class="n">ⓘ</span><span>The AI model (~50&nbsp;MB) downloads on first scan, then works offline forever.</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-brand">🎣 PhishNet</div>
+  <div>Built for Pixel Forge AI Hackathon · MIT License</div>
+  <div class="f-links">
+    <a href="https://github.com/anubhavaanand/PhishNet" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/anubhavaanand/PhishNet/blob/main/PRIVACY_POLICY.md" target="_blank" rel="noopener">Privacy Policy</a>
+    <a href="https://github.com/anubhavaanand/PhishNet/issues" target="_blank" rel="noopener">Issues</a>
+  </div>
+</footer>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const canvas = document.getElementById('scene-canvas');
+const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = innerWidth < 720;
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0b0f17, 0.055);
+
+const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 120);
+camera.position.set(0, 1.5, 11);
+
+/* ---- lights ---- */
+scene.add(new THREE.AmbientLight(0x334155, 1.2));
+const key = new THREE.DirectionalLight(0x38bdf8, 1.4); key.position.set(-6, 8, 6); scene.add(key);
+const rim = new THREE.DirectionalLight(0xf43f5e, 0.5); rim.position.set(8, -4, -6); scene.add(rim);
+
+/* ---- THE NET (undulating wireframe bowl) ---- */
+const NET_R = 7, SEG = isMobile ? 22 : 32;
+function buildNet() {
+  const pts = [], idx = [];
+  for (let i = 0; i <= SEG; i++) {
+    for (let j = 0; j <= SEG; j++) {
+      const u = j / SEG, v = i / SEG;
+      // hemisphere-ish net opening toward camera
+      const theta = u * Math.PI * 2;
+      const phi = v * Math.PI * 0.42;
+      const r = NET_R * Math.sin(phi), y = -NET_R * Math.cos(phi);
+      pts.push(r * Math.cos(theta) * 1.25, y + 1.5, r * Math.sin(theta) * 1.25);
+    }
+  }
+  for (let i = 0; i < SEG; i++) {
+    for (let j = 0; j < SEG; j++) {
+      const a = i * (SEG + 1) + j, b = a + SEG + 1;
+      idx.push(a, a + 1, b, b + 1);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  geo.setIndex(idx);
+  return geo;
+}
+const netGeo = buildNet();
+const basePositions = netGeo.attributes.position.array.slice();
+const net = new THREE.LineSegments(netGeo,
+  new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.28 }));
+scene.add(net);
+
+/* ---- ENVELOPES drifting into the net ---- */
+const ENV_COUNT = isMobile ? 26 : 54;
+const envGeo = new THREE.BoxGeometry(0.62, 0.4, 0.04);
+// Template material; each envelope gets its own clone so opacity fades are independent
+const envMatTemplate = new THREE.MeshStandardMaterial({
+  color: 0x10b981, emissive: 0x064e3b, roughness: 0.5
+});
+
+const _sink = new THREE.Vector3(0, -0.6, 0);
+const _jitter = new THREE.Vector3();
+
+class Envoy {
+  constructor() {
+    this.material = envMatTemplate.clone();
+    this.mesh = new THREE.Mesh(envGeo, this.material);
+    scene.add(this.mesh);
+    this.reset(true);
+  }
+  reset(spread) {
+    this.phish = Math.random() < 0.45;
+    if (this.phish) {
+      this.material.color.setHex(0xf43f5e);
+      this.material.emissive.setHex(0x4c0519);
+    } else {
+      this.material.color.setHex(0x10b981);
+      this.material.emissive.setHex(0x064e3b);
+    }
+    const a = Math.random() * Math.PI * 2;
+    this.pos = new THREE.Vector3(
+      Math.cos(a) * (5 + Math.random() * 6),
+      2 + Math.random() * (spread ? 7 : 4),
+      Math.sin(a) * 4 - 2
+    );
+    this.speed = 0.35 + Math.random() * 0.5;
+    this.rot = new THREE.Vector3(Math.random(), Math.random(), Math.random()).multiplyScalar(0.8);
+    this.caught = false;
+    this.stuckT = 0;
+    this.holdPos = null;
+    this.mesh.scale.setScalar(1);
+    this.material.transparent = false;
+    this.material.opacity = 1;
+  }
+  update(dt, t) {
+    if (!this.caught) {
+      this.pos.lerp(_sink, dt * this.speed * 0.16);
+      this.mesh.rotation.x += this.rot.x * dt;
+      this.mesh.rotation.y += this.rot.y * dt;
+      this.mesh.position.copy(this.pos);
+      if (this.pos.length() < 1.4) {
+        if (this.phish) {
+          this.caught = true;
+          this.stuckT = 0;
+          this.holdPos = this.pos.clone();
+        } else {
+          this.reset(false);
+        }
+      }
+    } else {
+      // caught phishing mail quivers on the net, then dissolves
+      this.stuckT += dt;
+      _jitter.set(
+        Math.sin(t * 21 + this.holdPos.x * 9) * 0.04,
+        Math.sin(t * 17 + this.holdPos.y * 7) * 0.04,
+        0
+      );
+      this.mesh.position.copy(this.holdPos).add(_jitter);
+      const s = Math.max(0.001, 1 - this.stuckT / 1.7);
+      this.mesh.scale.setScalar(s);
+      this.material.transparent = true;
+      this.material.opacity = s;
+      if (s <= 0.01) this.reset(false);
+    }
+  }
+}
+const envoys = Array.from({ length: ENV_COUNT }, () => new Envoy());
+
+/* ---- ambient particle dust ---- */
+const DUST = isMobile ? 220 : 520;
+const dustGeo = new THREE.BufferGeometry();
+const dp = new Float32Array(DUST * 3);
+for (let i = 0; i < DUST; i++) { dp[i*3] = (Math.random()-.5)*30; dp[i*3+1] = (Math.random()-.5)*18; dp[i*3+2] = (Math.random()-.5)*20; }
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dp, 3));
+const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+  color: 0x38bdf8, size: 0.035, transparent: true, opacity: 0.5,
+  blending: THREE.AdditiveBlending, depthWrite: false }));
+scene.add(dust);
+
+/* ---- glow ring at net mouth ---- */
+const ring = new THREE.Mesh(
+  new THREE.TorusGeometry(NET_R * 1.02, 0.03, 8, 90),
+  new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35 }));
+ring.rotation.x = Math.PI * 0.58; ring.position.y = 1.5; scene.add(ring);
+
+/* ---- interaction & resize ---- */
+let mx = 0, my = 0;
+addEventListener('pointermove', e => {
+  mx = (e.clientX / innerWidth - .5) * 2;
+  my = (e.clientY / innerHeight - .5) * 2;
+}, { passive: true });
+
+function resize() {
+  const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight;
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+}
+addEventListener('resize', resize); resize();
+
+/* ---- loop (single-flight, pausable) ---- */
+const clock = new THREE.Clock();
+let rafId = null;
+let running = false;
+
+function tick() {
+  rafId = requestAnimationFrame(tick);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  // undulate the net
+  const pos = netGeo.attributes.position.array;
+  for (let i = 0; i < pos.length; i += 3) {
+    const x = basePositions[i], y = basePositions[i + 1], z = basePositions[i + 2];
+    const wobble = Math.sin(x * 0.9 + t * 1.4) * 0.14 + Math.cos(z * 1.1 + t * 1.1) * 0.12;
+    pos[i]     = x + wobble * 0.35;
+    pos[i + 1] = y + Math.sin(t * 1.6 + z * 0.5) * 0.18;
+    pos[i + 2] = z + Math.cos(y * 0.7 + t) * 0.1;
+  }
+  netGeo.attributes.position.needsUpdate = true;
+
+  for (const e of envoys) e.update(dt, t);
+
+  dust.rotation.y += dt * 0.02;
+  ring.rotation.z += dt * 0.1;
+
+  // parallax camera
+  camera.position.x += ((mx * 1.6) - camera.position.x) * 0.04;
+  camera.position.y += ((1.5 - my * 1.1) - camera.position.y) * 0.04;
+  camera.lookAt(0, -0.2, 0);
+
+  renderer.render(scene, camera);
+}
+
+function startLoop() {
+  if (running || prefersReduced || document.hidden) return;
+  running = true;
+  rafId = requestAnimationFrame(tick);
+}
+function stopLoop() {
+  running = false;
+  if (rafId !== null) cancelAnimationFrame(rafId);
+  rafId = null;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopLoop();
+  else startLoop();
+});
+
+resize();
+if (prefersReduced) {
+  // static single frame — no animation for reduced-motion users
+  renderer.render(scene, camera);
+} else {
+  startLoop();
+}
+</script>
+</body>
+</html>

@@ -43,7 +43,31 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
 
 ---
 
-## [Unreleased] - Sprint 1 (Day 1-2)
+## [Unreleased]
+
+## [1.1.0] - Detection Engine Upgrade
+
+### Added
+- UTS #39-style confusable skeletoning: homoglyph and digit-substitution
+  attacks (p\u0430ypal.com, g00gle.com) normalize before distance checks
+- Damerau-Levenshtein distance with transposition shortcut for
+  transposition typosquats (payapl.com)
+- Display-name vs sender-domain brand impersonation cross-check
+- URL hardening: dangerous schemes (data:/javascript:/vbscript:),
+  open-redirect parameters, invisible-character obfuscation,
+  excessive hyphen runs and domain length
+- Calibrated logistic scoring replacing linear confidence
+- Labeled mini-corpus evaluation in tests with recall/FPR gates
+
+### Changed
+- Heuristic fallback re-tuned: urgency weight 8/signal, link risk 16/link
+- Memoization caches for skeleton, registrable-domain and lookalike results
+- Performance: ~0.25 ms/scan heuristic (4,000 scans/sec)
+
+### Fixed
+- Damerau row-buffer rotation aliasing prevPrev rows
+
+ - Sprint 1 (Day 1-2)
 
 ### In Progress
 - Content script testing on live Gmail/Outlook

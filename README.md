@@ -10,7 +10,7 @@ Outlook using a DistilBERT transformer running **entirely on your device**.
 [![CI](https://github.com/anubhavaanand/PhishNet/actions/workflows/ci.yml/badge.svg)](https://github.com/anubhavaanand/PhishNet/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-38BDF8.svg)](LICENSE)
 [![Chrome](https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/tests-20%2F20-10B981.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-30%2F30-10B981.svg)](#testing)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-8B5CF6.svg)](CONTRIBUTING.md)
 
 [Website](https://anubhavaanand.github.io/PhishNet/) · [Install](#-install) · [How it works](#-how-it-works) · [Privacy](#-privacy) · [Report a bug](https://github.com/anubhavaanand/PhishNet/issues)
@@ -93,7 +93,7 @@ Full details in [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
 
 ## 🧪 Testing
 
-20 unit tests cover the detection engine (typosquatting, homographs,
+30 unit tests cover the detection engine (typosquatting, homographs,
 attachments, official-domain false-positive regressions), provider selectors
 and utilities:
 
@@ -109,7 +109,7 @@ full test suite on every push.
 
 | Metric | Value |
 | --- | --- |
-| Heuristic fallback scan | ~27 µs (37,000 scans/sec) |
+| Heuristic fallback scan | ~0.25 ms (4,000 scans/sec, v1.1 engine) |
 | ML inference (after warm-up) | ~200 ms per email |
 | Extension code (excl. bundled runtime) | ~70 KB |
 | Memory footprint | Single observer, debounced scans, idle-coalesced DOM work |

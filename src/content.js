@@ -526,13 +526,32 @@
 
     const header = document.createElement('div');
     header.className = 'phishnet-modal-header';
-    header.innerHTML = `
-      <div class="phishnet-modal-header-left">
-        <span class="phishnet-modal-logo" aria-hidden="true">🎣</span>
-        <span class="phishnet-modal-title" id="phishnet-modal-title-id">PhishNet Threat Inspector</span>
-      </div>
-      <button class="phishnet-modal-close" id="phishnetModalCloseBtn" aria-label="Close threat details dialog">✕</button>
-    `;
+
+    const headerLeft = document.createElement('div');
+    headerLeft.className = 'phishnet-modal-header-left';
+
+    const logoSpan = document.createElement('span');
+    logoSpan.className = 'phishnet-modal-logo';
+    logoSpan.setAttribute('aria-hidden', 'true');
+    logoSpan.textContent = '🎣';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'phishnet-modal-title';
+    titleSpan.id = 'phishnet-modal-title-id';
+    titleSpan.textContent = 'PhishNet Threat Inspector';
+
+    headerLeft.appendChild(logoSpan);
+    headerLeft.appendChild(titleSpan);
+
+    const headerCloseBtn = document.createElement('button');
+    headerCloseBtn.className = 'phishnet-modal-close';
+    headerCloseBtn.id = 'phishnetModalCloseBtn';
+    headerCloseBtn.setAttribute('aria-label', 'Close threat details dialog');
+    headerCloseBtn.textContent = '✕';
+
+    header.appendChild(headerLeft);
+    header.appendChild(headerCloseBtn);
+
 
     const body = document.createElement('div');
     body.className = 'phishnet-modal-body';
@@ -545,20 +564,38 @@
     // Verdict Banner
     const verdictBanner = document.createElement('div');
     verdictBanner.className = `phishnet-verdict-banner ${verdictClass}`;
-    verdictBanner.innerHTML = `
-      <div class="phishnet-verdict-label">
-        <span>${verdictIcon}</span>
-        <span>${verdictTitle}</span>
-      </div>
-      <div class="phishnet-verdict-score">${confidencePct}%</div>
-    `;
+
+    const verdictLabel = document.createElement('div');
+    verdictLabel.className = 'phishnet-verdict-label';
+
+    const iconSpan = document.createElement('span');
+    iconSpan.textContent = verdictIcon;
+
+    const titleSpan2 = document.createElement('span');
+    titleSpan2.textContent = verdictTitle;
+
+    verdictLabel.appendChild(iconSpan);
+    verdictLabel.appendChild(titleSpan2);
+
+    const scoreDiv = document.createElement('div');
+    scoreDiv.className = 'phishnet-verdict-score';
+    scoreDiv.textContent = confidencePct + '%';
+
+    verdictBanner.appendChild(verdictLabel);
+    verdictBanner.appendChild(scoreDiv);
+
     body.appendChild(verdictBanner);
 
     // Reasons Card
     if (result.reasons && result.reasons.length > 0) {
       const reasonsCard = document.createElement('div');
       reasonsCard.className = 'phishnet-reasons-card';
-      reasonsCard.innerHTML = `<div class="phishnet-reasons-title">Detected Indicators:</div>`;
+
+      const reasonsTitle = document.createElement('div');
+      reasonsTitle.className = 'phishnet-reasons-title';
+      reasonsTitle.textContent = 'Detected Indicators:';
+      reasonsCard.appendChild(reasonsTitle);
+
       result.reasons.forEach(r => {
         const item = document.createElement('div');
         item.className = 'phishnet-reason-item';
@@ -572,24 +609,32 @@
     if (result.signals) {
       const signalsGrid = document.createElement('div');
       signalsGrid.className = 'phishnet-signals-grid';
-      signalsGrid.innerHTML = `
-        <div class="phishnet-signal-card">
-          <span class="phishnet-signal-title">Urgency Panic Score</span>
-          <span class="phishnet-signal-value" style="color: ${result.signals.urgencyScore > 20 ? '#f43f5e' : '#10b981'}">${result.signals.urgencyScore}/40</span>
-        </div>
-        <div class="phishnet-signal-card">
-          <span class="phishnet-signal-title">Domain Trust Risk</span>
-          <span class="phishnet-signal-value" style="color: ${result.signals.senderTrustScore > 20 ? '#f43f5e' : '#10b981'}">${result.signals.senderTrustScore}/45</span>
-        </div>
-        <div class="phishnet-signal-card">
-          <span class="phishnet-signal-title">Link Threat Level</span>
-          <span class="phishnet-signal-value" style="color: ${result.signals.linkRiskScore > 0 ? '#f43f5e' : '#10b981'}">${result.signals.linkRiskScore}/45</span>
-        </div>
-        <div class="phishnet-signal-card">
-          <span class="phishnet-signal-title">Attachment Safety</span>
-          <span class="phishnet-signal-value" style="color: ${result.signals.attachmentRiskScore > 0 ? '#f43f5e' : '#10b981'}">${result.signals.attachmentRiskScore > 0 ? 'Threat Detected' : 'Clean'}</span>
-        </div>
-      `;
+
+      const signals = [
+        { title: 'Urgency Panic Score', value: `${result.signals.urgencyScore}/40`, color: result.signals.urgencyScore > 20 ? '#f43f5e' : '#10b981' },
+        { title: 'Domain Trust Risk', value: `${result.signals.senderTrustScore}/45`, color: result.signals.senderTrustScore > 20 ? '#f43f5e' : '#10b981' },
+        { title: 'Link Threat Level', value: `${result.signals.linkRiskScore}/45`, color: result.signals.linkRiskScore > 0 ? '#f43f5e' : '#10b981' },
+        { title: 'Attachment Safety', value: result.signals.attachmentRiskScore > 0 ? 'Threat Detected' : 'Clean', color: result.signals.attachmentRiskScore > 0 ? '#f43f5e' : '#10b981' }
+      ];
+
+      signals.forEach(sig => {
+        const sigCard = document.createElement('div');
+        sigCard.className = 'phishnet-signal-card';
+
+        const sigTitle = document.createElement('span');
+        sigTitle.className = 'phishnet-signal-title';
+        sigTitle.textContent = sig.title;
+
+        const sigValue = document.createElement('span');
+        sigValue.className = 'phishnet-signal-value';
+        sigValue.style.color = sig.color;
+        sigValue.textContent = sig.value;
+
+        sigCard.appendChild(sigTitle);
+        sigCard.appendChild(sigValue);
+        signalsGrid.appendChild(sigCard);
+      });
+
       body.appendChild(signalsGrid);
     }
 
@@ -597,7 +642,12 @@
     if (result.links && result.links.length > 0) {
       const linkSection = document.createElement('div');
       linkSection.className = 'phishnet-reasons-card';
-      linkSection.innerHTML = `<div class="phishnet-reasons-title">Links in Email (${result.links.length}):</div>`;
+
+      const linkSectionTitle = document.createElement('div');
+      linkSectionTitle.className = 'phishnet-reasons-title';
+      linkSectionTitle.textContent = `Links in Email (${result.links.length}):`;
+      linkSection.appendChild(linkSectionTitle);
+
       const linkList = document.createElement('div');
       linkList.className = 'phishnet-link-list';
 

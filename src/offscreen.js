@@ -5,6 +5,15 @@
 
 import { pipeline, env } from '../vendor/transformers.min.js';
 import logger from './utils/logger.js';
+// Side-effect import: installs globalThis.PhishNet (shared v1.1 detection
+// engine — skeletoning, Damerau typosquats, hardened URL checks)
+import './utils/heuristic-detector.js';
+
+const {
+  isUrlSuspicious,
+  isDomainSuspicious,
+  checkLookalikeBrand
+} = globalThis.PhishNet;
 
 // Configure Transformers.js environment
 env.allowLocalModels = false; // Download from Hugging Face Hub, then cache in IndexedDB
@@ -216,88 +225,24 @@ function generateReasons(predictions, text = '', settings = {}) {
     reasons.push(`${suspiciousLinks} suspicious link(s) detected`);
   }
 
-  // Sender domain analysis
+  // Sender domain analysis + v1.1 brand-lookalike detection
   const emailRegex = /[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
   let match;
   while ((match = emailRegex.exec(text)) !== null) {
     const domain = match[1]?.toLowerCase();
-    if (domain && isDomainSuspicious(domain)) {
+    if (!domain) continue;
+    if (isDomainSuspicious(domain)) {
       reasons.push(`Suspicious sender domain: ${domain}`);
+      break;
+    }
+    const lookalike = checkLookalikeBrand(domain);
+    if (lookalike && lookalike.brand && lookalike.brand !== 'unknown') {
+      reasons.push(`Domain mimics "${lookalike.brand}" (${domain})`);
       break;
     }
   }
 
   return reasons.slice(0, 5);
-}
-
-/**
- * Check if URL is suspicious
- */
-function isUrlSuspicious(url) {
-  try {
-    const parsed = new URL(url);
-    const domain = parsed.hostname.toLowerCase();
-
-    // Suspicious TLDs
-    const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club', '.work', '.date', '.loan', '.win'];
-    for (const tld of suspiciousTlds) {
-      if (domain.endsWith(tld)) return true;
-    }
-
-    // URL shorteners
-    const shorteners = ['bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd', 'buff.ly', 'cutt.ly'];
-    for (const s of shorteners) {
-      if (domain === s || domain.endsWith('.' + s)) return true;
-    }
-
-    // IP address
-    if (/^\d+\.\d+\.\d+\.\d+$/.test(domain)) return true;
-
-    // Excessive subdomains
-    if (domain.split('.').length > 4) return true;
-
-    // Suspicious keywords in domain
-    const keywords = ['secure', 'verify', 'account', 'login', 'signin', 'update', 'confirm'];
-    for (const kw of keywords) {
-      if (domain.includes(kw) && !domain.startsWith(kw + '.') && !domain.endsWith('.' + kw + '.com')) return true;
-    }
-
-  } catch (e) {
-    return true; // Invalid URL
-  }
-
-  return false;
-}
-
-/**
- * Check if domain is suspicious
- */
-function isDomainSuspicious(domain) {
-  if (!domain) return false;
-  const lowerDomain = domain.toLowerCase();
-
-  // Suspicious TLDs
-  const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.club'];
-  for (const tld of suspiciousTlds) {
-    if (lowerDomain.endsWith(tld)) return true;
-  }
-
-  // IP address
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(lowerDomain)) return true;
-
-  // Excessive numbers
-  if (/[0-9]{4,}/.test(lowerDomain)) return true;
-
-  // Brand in domain/subdomain
-  const brands = ['paypal', 'amazon', 'microsoft', 'apple', 'google', 'bank', 'chase', 'wells', 'fargo', 'citi'];
-  for (const brand of brands) {
-    if (lowerDomain.includes(brand)) {
-      const isOfficial = lowerDomain === `${brand}.com` || lowerDomain.endsWith(`.${brand}.com`);
-      if (!isOfficial) return true;
-    }
-  }
-
-  return false;
 }
 
 /**

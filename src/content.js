@@ -543,14 +543,14 @@
     headerLeft.appendChild(logoSpan);
     headerLeft.appendChild(titleSpan);
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'phishnet-modal-close';
-    closeBtn.id = 'phishnetModalCloseBtn';
-    closeBtn.setAttribute('aria-label', 'Close threat details dialog');
-    closeBtn.textContent = '✕';
+    const headerCloseBtn = document.createElement('button');
+    headerCloseBtn.className = 'phishnet-modal-close';
+    headerCloseBtn.id = 'phishnetModalCloseBtn';
+    headerCloseBtn.setAttribute('aria-label', 'Close threat details dialog');
+    headerCloseBtn.textContent = '✕';
 
     header.appendChild(headerLeft);
-    header.appendChild(closeBtn);
+    header.appendChild(headerCloseBtn);
 
 
     const body = document.createElement('div');

@@ -40,3 +40,6 @@ coverage/
 # Firefox build output
 dist-firefox/
 phishnet-*-firefox.zip
+
+# Demo video artifact
+*.mp4

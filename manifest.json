@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PhishNet",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Privacy-first phishing email detector using on-device AI. Works on Gmail & Outlook.",
   "icons": {
     "16": "public/icons/icon-16.png",
@@ -10,7 +10,7 @@
     "128": "public/icons/icon-128.png"
   },
   "action": {
-    "default_popup": "src/popup.html",
+    "default_popup": "dist/popup.html",
     "default_title": "PhishNet - Phishing Detector",
     "default_icon": {
       "16": "public/icons/icon-16.png",
@@ -19,6 +19,7 @@
       "128": "public/icons/icon-128.png"
     }
   },
+  "options_page": "dist/options.html",
   "background": {
     "service_worker": "src/background.js",
     "type": "module"

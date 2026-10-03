@@ -1,0 +1,21 @@
+{
+  "name": "phishnet",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Privacy-first phishing email detector using on-device AI",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:popup": "vite build",
+    "build:options": "vite build --mode options",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.10"
+  }
+}

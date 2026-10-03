@@ -1,77 +1,93 @@
 /**
- * PhishNet Design System & Injected Styles
- * Modern Dark Mode Aesthetic, Badges, Links, and Interactive Threat Modal
+ * PhishNet Design System — Injected Content Styles
+ *
+ * Playful, friendly badge + modal styles injected into Gmail & Outlook.
+ * Uses the new coral/teal/amber palette with rounded shapes and
+ * bouncy micro-interactions. Content scripts load this CSS file
+ * directly (not through React), so these are plain CSS rules.
  */
 
 /* ==========================================================================
-   1. Badge Indicators
+   1. Badge Indicators — inline verdict pills
    ========================================================================== */
 .phishnet-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 9999px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
+  font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
   margin-left: 8px;
   vertical-align: middle;
   cursor: pointer;
   user-select: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   z-index: 999;
+  animation: phishnet-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes phishnet-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .phishnet-badge:hover {
-  transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
 .phishnet-badge:focus-visible {
-  outline: 2px solid #6FD6A0;
+  outline: 2px solid #FF6B6B;
   outline-offset: 2px;
 }
 
 .phishnet-badge:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.96);
 }
 
-/* Safe Badge */
+/* Safe Badge — green */
 .phishnet-badge--safe {
-  background: linear-gradient(135deg, #12402F 0%, #175039 100%);
-  color: #9FEBC4;
-  border: 1px solid #37A97C;
+  background: linear-gradient(135deg, #5EE0A4, #34C98B);
+  color: #FFFFFF;
+  border: 1.5px solid #25A873;
+  box-shadow: 0 2px 10px rgba(52, 201, 139, 0.30);
 }
 
-/* Phishing Badge */
+/* Phishing Badge — coral rose */
 .phishnet-badge--phishing {
-  background: linear-gradient(135deg, #881337 0%, #9f1239 100%);
-  color: #fecdd3;
-  border: 1px solid #e11d48;
-  animation: phishnet-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(135deg, #FF6B6B, #F43F5E);
+  color: #FFFFFF;
+  border: 1.5px solid #E11D48;
+  box-shadow: 0 2px 10px rgba(244, 63, 94, 0.30);
+  animation: phishnet-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             phishnet-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.3s;
 }
 
 @keyframes phishnet-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.5); }
-  50% { box-shadow: 0 0 0 6px rgba(225, 29, 72, 0); }
+  0%, 100% { box-shadow: 0 2px 10px rgba(244, 63, 94, 0.30), 0 0 0 0 rgba(244, 63, 94, 0.40); }
+  50% { box-shadow: 0 2px 10px rgba(244, 63, 94, 0.30), 0 0 0 6px rgba(244, 63, 94, 0); }
 }
 
-/* Uncertain Badge */
+/* Uncertain Badge — amber */
 .phishnet-badge--uncertain {
-  background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
-  color: #fde68a;
-  border: 1px solid #d97706;
+  background: linear-gradient(135deg, #FFCC6B, #FFB845);
+  color: #5C4400;
+  border: 1.5px solid #E8A030;
+  box-shadow: 0 2px 10px rgba(255, 184, 69, 0.25);
 }
 
-/* Whitelisted / Trusted Badge */
+/* Trusted Badge — gold */
 .phishnet-badge--trusted {
-  background: linear-gradient(135deg, #3A2F14 0%, #4A3A18 100%);
-  color: #F0DFA6;
-  border: 1px solid #B08D3E;
+  background: linear-gradient(135deg, #FFD070, #F0B247);
+  color: #5C4400;
+  border: 1.5px solid #D99A2E;
+  box-shadow: 0 2px 10px rgba(240, 178, 71, 0.25);
 }
 
 /* ==========================================================================
@@ -79,17 +95,17 @@
    ========================================================================== */
 .phishnet-link--suspicious {
   position: relative;
-  text-decoration: underline wavy #f43f5e !important;
+  text-decoration: underline wavy #F43F5E !important;
   text-decoration-thickness: 2px !important;
   text-underline-offset: 3px !important;
-  background: rgba(244, 63, 94, 0.12) !important;
-  border-radius: 3px;
-  padding: 1px 4px;
+  background: rgba(244, 63, 94, 0.08) !important;
+  border-radius: 4px;
+  padding: 1px 5px;
   transition: background 0.2s ease;
 }
 
 .phishnet-link--suspicious:hover {
-  background: rgba(244, 63, 94, 0.25) !important;
+  background: rgba(244, 63, 94, 0.18) !important;
 }
 
 .phishnet-link-warning {
@@ -113,17 +129,18 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: #0A120D;
-  color: #ECF4EE;
-  padding: 8px 12px;
-  border-radius: 8px;
+  background: #2D2419;
+  color: #FAF6F1;
+  padding: 8px 14px;
+  border-radius: 10px;
   font-size: 11px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
   max-width: 280px;
   white-space: pre-wrap;
   z-index: 2147483647;
-  border: 1px solid #24352B;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid #6B5D4F;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
   line-height: 1.4;
   text-align: left;
   pointer-events: none;
@@ -140,18 +157,18 @@
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: #0A120D;
+  border-top-color: #2D2419;
   z-index: 2147483647;
   pointer-events: none;
 }
 
 /* ==========================================================================
-   4. Interactive Threat Breakdown Modal (Injected)
+   4. Interactive Threat Breakdown Modal
    ========================================================================== */
 .phishnet-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(3, 9, 6, 0.78);
+  background: rgba(45, 36, 25, 0.50);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 2147483640;
@@ -171,17 +188,17 @@
   width: 100%;
   max-width: 540px;
   max-height: 85vh;
-  background: #0A120D;
-  border: 1px solid #24352B;
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  color: #ECF4EE;
+  background: #FAF6F1;
+  border: 1px solid #E8E0D6;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(45, 36, 25, 0.20);
+  color: #2D2419;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transform: scale(0.95);
-  animation: phishnet-pop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: scale(0.92);
+  animation: phishnet-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 @keyframes phishnet-pop-in {
@@ -193,8 +210,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #14201A;
-  border-bottom: 1px solid #24352B;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E8E0D6;
 }
 
 .phishnet-modal-header-left {
@@ -209,17 +226,18 @@
 
 .phishnet-modal-title {
   font-size: 16px;
-  font-weight: 700;
-  color: #ECF4EE;
+  font-weight: 800;
+  color: #2D2419;
+  letter-spacing: -0.02em;
 }
 
 .phishnet-modal-close {
-  background: #24352B;
+  background: #F3EEE7;
   border: none;
-  color: #97AC9F;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  color: #6B5D4F;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   font-size: 16px;
   cursor: pointer;
   display: flex;
@@ -229,8 +247,9 @@
 }
 
 .phishnet-modal-close:hover {
-  background: #31463B;
-  color: #ffffff;
+  background: #EDE7DE;
+  color: #2D2419;
+  transform: scale(1.05);
 }
 
 .phishnet-modal-body {
@@ -246,38 +265,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #14201A;
-  border: 1px solid #24352B;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid #E8E0D6;
 }
 
 .phishnet-verdict-banner.phishing {
-  background: rgba(225, 29, 72, 0.15);
-  border-color: rgba(225, 29, 72, 0.4);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.08), rgba(255, 107, 107, 0.06));
+  border: 1.5px solid #F43F5E;
 }
 
 .phishnet-verdict-banner.safe {
-  background: rgba(111, 214, 160, 0.15);
-  border-color: rgba(111, 214, 160, 0.4);
+  background: linear-gradient(135deg, rgba(52, 201, 139, 0.08), rgba(46, 196, 182, 0.06));
+  border: 1.5px solid #34C98B;
 }
 
 .phishnet-verdict-banner.uncertain {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, rgba(255, 184, 69, 0.08), rgba(255, 204, 107, 0.06));
+  border: 1.5px solid #FFB845;
 }
 
 .phishnet-verdict-label {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: -0.01em;
 }
 
 .phishnet-verdict-score {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 /* Signals grid */
@@ -288,56 +309,60 @@
 }
 
 .phishnet-signal-card {
-  background: #14201A;
-  border: 1px solid #24352B;
-  border-radius: 10px;
-  padding: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E8E0D6;
+  border-radius: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .phishnet-signal-title {
-  font-size: 11px;
-  color: #97AC9F;
-  font-weight: 500;
+  font-size: 10px;
+  color: #9C8B7A;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .phishnet-signal-value {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
 }
 
 /* Reasons list */
 .phishnet-reasons-card {
-  background: #14201A;
-  border: 1px solid #24352B;
-  border-radius: 10px;
-  padding: 14px;
+  background: #FFFFFF;
+  border: 1px solid #E8E0D6;
+  border-radius: 14px;
+  padding: 16px;
 }
 
 .phishnet-reasons-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #C4D7CB;
-  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #9C8B7A;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
 }
 
 .phishnet-reason-item {
-  font-size: 12px;
-  color: #e2e8f0;
-  padding: 4px 0;
+  font-size: 13px;
+  color: #4A3F35;
+  padding: 5px 0;
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  line-height: 1.4;
+  gap: 8px;
+  line-height: 1.5;
 }
 
 .phishnet-reason-item::before {
-  content: '⚠️';
-  font-size: 11px;
+  content: '⚠';
+  font-size: 12px;
+  color: #FF6B6B;
+  flex-shrink: 0;
 }
 
 /* Link inspector in modal */
@@ -351,32 +376,33 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #14201A;
-  border: 1px solid #24352B;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 11px;
+  background: #FFFFFF;
+  border: 1px solid #E8E0D6;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
   gap: 8px;
 }
 
 .phishnet-link-item.suspicious {
-  border-color: rgba(244, 63, 94, 0.5);
-  background: rgba(244, 63, 94, 0.08);
+  border: 1.5px solid #F43F5E;
+  background: rgba(244, 63, 94, 0.05);
 }
 
 .phishnet-link-url {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #6FD6A0;
+  color: #2EC4B6;
   flex: 1;
+  font-weight: 600;
 }
 
 /* Modal footer */
 .phishnet-modal-footer {
   padding: 14px 20px;
-  background: #14201A;
-  border-top: 1px solid #24352B;
+  background: #FFFFFF;
+  border-top: 1px solid #E8E0D6;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -384,53 +410,55 @@
 }
 
 .phishnet-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: none;
 }
 
 .phishnet-btn--primary {
-  background: #2E8F68;
+  background: linear-gradient(135deg, #FF8E8E, #FF6B6B);
   color: white;
+  box-shadow: 0 3px 10px rgba(255, 107, 107, 0.30);
 }
 
 .phishnet-btn--primary:hover {
-  background: #257757;
+  background: linear-gradient(135deg, #FF6B6B, #E85555);
+  transform: translateY(-1px);
 }
 
 .phishnet-btn--secondary {
-  background: #24352B;
-  color: #C4D7CB;
+  background: #F3EEE7;
+  color: #4A3F35;
 }
 
 .phishnet-btn--secondary:hover {
-  background: #31463B;
-  color: white;
+  background: #EDE7DE;
+  color: #2D2419;
 }
 
 .phishnet-btn:focus-visible,
 .phishnet-modal-close:focus-visible {
-  outline: 2px solid #6FD6A0;
+  outline: 2px solid #FF6B6B;
   outline-offset: 2px;
 }
 
 /* ==========================================================================
-   5. Mobile Responsiveness (Kiwi Browser, Orion, Touch Displays)
+   5. Mobile Responsiveness
    ========================================================================== */
 @media (max-width: 640px) {
   .phishnet-modal-card {
     max-height: 92vh;
-    border-radius: 12px;
+    border-radius: 16px;
   }
   .phishnet-signals-grid {
     grid-template-columns: 1fr;
   }
   .phishnet-badge {
-    padding: 3px 8px;
+    padding: 3px 9px;
     font-size: 10.5px;
   }
 }

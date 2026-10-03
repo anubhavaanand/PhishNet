@@ -1,0 +1,284 @@
+/**
+ * PhishNet Design System — Tokens & Global Styles
+ *
+ * Playful, friendly, vibrant. Warm cream base with coral primary,
+ * teal secondary, amber accent. Light mode default with dark variant.
+ *
+ * Every component in the React frontend imports this file.
+ */
+
+:root {
+  /* ===== Color System ===== */
+
+  /* Primary — Coral (friendly, energetic, approachable) */
+  --pn-coral: #FF6B6B;
+  --pn-coral-light: #FF8E8E;
+  --pn-coral-dark: #E85555;
+  --pn-coral-pale: #FFF0F0;
+
+  /* Secondary — Teal (trustworthy, fresh, calm) */
+  --pn-teal: #2EC4B6;
+  --pn-teal-light: #4DDDD0;
+  --pn-teal-dark: #25A99E;
+  --pn-teal-pale: #E6FAF8;
+
+  /* Accent — Amber (warm, playful, attention) */
+  --pn-amber: #FFB845;
+  --pn-amber-light: #FFCC6B;
+  --pn-amber-dark: #E8A030;
+  --pn-amber-pale: #FFF5E0;
+
+  /* Success — Green (safe, positive) */
+  --pn-green: #34C98B;
+  --pn-green-light: #5EE0A4;
+  --pn-green-dark: #25A873;
+  --pn-green-pale: #E8FBF2;
+
+  /* Danger — Rose (phishing threat) */
+  --pn-rose: #F43F5E;
+  --pn-rose-light: #FB7185;
+  --pn-rose-dark: #E11D48;
+  --pn-rose-pale: #FFF0F3;
+
+  /* Trusted — Gold (special, star) */
+  --pn-gold: #F0B247;
+  --pn-gold-light: #FFD070;
+  --pn-gold-pale: #FFF8E8;
+
+  /* ===== Neutral Ramps (Light Mode) ===== */
+  --pn-bg: #FAF6F1;
+  --pn-bg-card: #FFFFFF;
+  --pn-bg-elevated: #FFFFFF;
+  --pn-bg-subtle: #F3EEE7;
+  --pn-bg-hover: #EDE7DE;
+
+  --pn-border: #E8E0D6;
+  --pn-border-strong: #D4CABA;
+  --pn-border-focus: #FF6B6B;
+
+  --pn-text-primary: #2D2419;
+  --pn-text-secondary: #6B5D4F;
+  --pn-text-tertiary: #9C8B7A;
+  --pn-text-inverse: #FFFFFF;
+
+  /* ===== Shadows (soft, layered) ===== */
+  --pn-shadow-sm: 0 1px 3px rgba(45, 36, 25, 0.08);
+  --pn-shadow-md: 0 4px 12px rgba(45, 36, 25, 0.10);
+  --pn-shadow-lg: 0 8px 24px rgba(45, 36, 25, 0.12);
+  --pn-shadow-xl: 0 16px 40px rgba(45, 36, 25, 0.15);
+
+  /* Colored shadows for playful depth */
+  --pn-shadow-coral: 0 6px 20px rgba(255, 107, 107, 0.30);
+  --pn-shadow-teal: 0 6px 20px rgba(46, 196, 182, 0.30);
+  --pn-shadow-green: 0 6px 20px rgba(52, 201, 139, 0.25);
+  --pn-shadow-rose: 0 6px 20px rgba(244, 63, 94, 0.25);
+
+  /* ===== Radius Scale ===== */
+  --pn-radius-sm: 8px;
+  --pn-radius-md: 12px;
+  --pn-radius-lg: 16px;
+  --pn-radius-xl: 20px;
+  --pn-radius-full: 9999px;
+
+  /* ===== Spacing (8px system) ===== */
+  --pn-space-1: 4px;
+  --pn-space-2: 8px;
+  --pn-space-3: 12px;
+  --pn-space-4: 16px;
+  --pn-space-5: 20px;
+  --pn-space-6: 24px;
+  --pn-space-8: 32px;
+  --pn-space-10: 40px;
+  --pn-space-12: 48px;
+
+  /* ===== Typography ===== */
+  --pn-font-heading: 'Quicksand', system-ui, -apple-system, sans-serif;
+  --pn-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pn-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --pn-text-xs: 11px;
+  --pn-text-sm: 13px;
+  --pn-text-base: 14px;
+  --pn-text-md: 15px;
+  --pn-text-lg: 18px;
+  --pn-text-xl: 22px;
+  --pn-text-2xl: 28px;
+
+  --pn-leading-tight: 1.2;
+  --pn-leading-normal: 1.5;
+  --pn-leading-relaxed: 1.65;
+
+  --pn-weight-normal: 400;
+  --pn-weight-medium: 500;
+  --pn-weight-semibold: 600;
+  --pn-weight-bold: 700;
+  --pn-weight-extrabold: 800;
+
+  /* ===== Motion ===== */
+  --pn-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pn-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --pn-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --pn-dur-fast: 0.15s;
+  --pn-dur-normal: 0.25s;
+  --pn-dur-slow: 0.4s;
+
+  /* ===== Z-Index Scale ===== */
+  --pn-z-base: 1;
+  --pn-z-overlay: 10;
+  --pn-z-modal: 100;
+  --pn-z-toast: 1000;
+}
+
+/* ===== Dark Mode Override ===== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --pn-bg: #1A1714;
+    --pn-bg-card: #25211C;
+    --pn-bg-elevated: #2C2823;
+    --pn-bg-subtle: #2E2A25;
+    --pn-bg-hover: #38332D;
+
+    --pn-border: #3A342D;
+    --pn-border-strong: #4A4238;
+    --pn-border-focus: #FF6B6B;
+
+    --pn-text-primary: #F5EFE6;
+    --pn-text-secondary: #B0A596;
+    --pn-text-tertiary: #80746A;
+    --pn-text-inverse: #1A1714;
+
+    --pn-coral-pale: rgba(255, 107, 107, 0.15);
+    --pn-teal-pale: rgba(46, 196, 182, 0.15);
+    --pn-amber-pale: rgba(255, 184, 69, 0.15);
+    --pn-green-pale: rgba(52, 201, 139, 0.15);
+    --pn-rose-pale: rgba(244, 63, 94, 0.15);
+    --pn-gold-pale: rgba(240, 178, 71, 0.15);
+
+    --pn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+    --pn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+    --pn-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --pn-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.40);
+  }
+}
+
+/* Manual theme override (user picks in settings) */
+[data-theme='dark'] {
+  --pn-bg: #1A1714;
+  --pn-bg-card: #25211C;
+  --pn-bg-elevated: #2C2823;
+  --pn-bg-subtle: #2E2A25;
+  --pn-bg-hover: #38332D;
+
+  --pn-border: #3A342D;
+  --pn-border-strong: #4A4238;
+
+  --pn-text-primary: #F5EFE6;
+  --pn-text-secondary: #B0A596;
+  --pn-text-tertiary: #80746A;
+  --pn-text-inverse: #1A1714;
+
+  --pn-coral-pale: rgba(255, 107, 107, 0.15);
+  --pn-teal-pale: rgba(46, 196, 182, 0.15);
+  --pn-amber-pale: rgba(255, 184, 69, 0.15);
+  --pn-green-pale: rgba(52, 201, 139, 0.15);
+  --pn-rose-pale: rgba(244, 63, 94, 0.15);
+  --pn-gold-pale: rgba(240, 178, 71, 0.15);
+
+  --pn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --pn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
+  --pn-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --pn-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.40);
+}
+
+/* ===== Global Reset ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: var(--pn-font-body);
+  font-size: var(--pn-text-base);
+  line-height: var(--pn-leading-normal);
+  color: var(--pn-text-primary);
+  background: var(--pn-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--pn-border-strong);
+  border-radius: var(--pn-radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--pn-text-tertiary); }
+
+/* ===== Keyframe Animations ===== */
+@keyframes pn-bounce-in {
+  0% { opacity: 0; transform: translateY(12px) scale(0.95); }
+  60% { opacity: 1; transform: translateY(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pn-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pn-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pn-shimmer {
+  0% { transform: translateX(-120%) skewX(-15deg); }
+  100% { transform: translateX(220%) skewX(-15deg); }
+}
+
+@keyframes pn-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(46, 196, 182, 0.45); }
+  60% { box-shadow: 0 0 0 6px rgba(46, 196, 182, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 196, 182, 0); }
+}
+
+@keyframes pn-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes pn-count-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); color: var(--pn-coral); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pn-slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pn-fade-out {
+  to { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes pn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

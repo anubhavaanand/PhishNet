@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src="assets/phishnet_mountain_scenery.gif" alt="PhishNet Banner" width="100%"/>
+
+<br/>
+
 # 🎣 PhishNet
 
 **Catch phishing before it catches you.**

@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Vendor files - minified bundles may trigger false positive secret scans
+vendor/
+
 # Documentation (internal developer notes)
 doc/
 

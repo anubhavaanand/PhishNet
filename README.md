@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/phishnet_mountain_scenery.gif" alt="PhishNet Banner" width="100%"/>
+<img src="assets/phishnet_mountain_banner.gif" alt="PhishNet Banner" width="100%"/>
 
 <br/>
 

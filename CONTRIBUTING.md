@@ -4,10 +4,12 @@ Thank you for your interest in contributing! PhishNet is a privacy-first phishin
 
 ## Getting Started
 
+> 👋 **First contribution?** Read the [Newcomer Guide](NEWCOMER_GUIDE.md) first — it walks through setup, the local checks, good-first-issue entry points, and the PR flow.
+
 ### Prerequisites
 - Chrome 109+ (for Offscreen Documents API)
 - Basic knowledge of Chrome Extensions (MV3), JavaScript ES Modules
-- No build tools required — vanilla JS only
+- Node.js 20+ — needed for `npm ci` and to build the React popup/options UI (`npm run build`); the extension core itself is vanilla JS with no build step
 
 ### Development Setup
 ```bash

@@ -92,6 +92,12 @@ Click the verdict badge to inspect which heuristic or model signal fired, then c
 
 ---
 
+### 🤝 Contributing
+
+**New here? Start with the [Newcomer Guide](NEWCOMER_GUIDE.md)** — local setup, the checks CI runs, good-first-issue entry points, and your first PR, step by step. Full details live in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 <div align="center">
 <sub>MIT Licensed · Built with 🎣 by <a href="https://github.com/anubhavaanand">Anubhav Anand</a></sub>
 </div>

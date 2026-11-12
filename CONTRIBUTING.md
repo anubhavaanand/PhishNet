@@ -108,9 +108,16 @@ at runtime. Do not "clean up" this contradiction; it is intentional.
 
 ## Testing
 
-Tests use Node's built-in runner — **no test framework dependency**. `npm test`
-runs `pretest` (a Vite build) first, because `tests/package.test.js` asserts the
-built `dist/` matches the manifest.
+Two runners, both wired into `npm test`:
+
+| Command | Runner | Covers |
+| --- | --- | --- |
+| `npm run test:unit` | `node --test` | Extension core: detector, selectors, error boundary, service worker, corpus, packaging |
+| `npm run test:ui` | Vitest + Testing Library | React components, hooks, and the messaging bridge |
+
+`pretest` runs a Vite build first, because `tests/package.test.js` asserts the built
+`dist/` matches the manifest. Node's runner needs no framework dependency; Vitest
+covers the `.jsx`/ESM side that Node cannot load.
 
 ### What is covered
 
@@ -122,16 +129,18 @@ built `dist/` matches the manifest.
 | `background.test.mjs` | The service-worker message contract: settings, whitelist, history, model gating, unknown messages — driven through the same `chrome.runtime.onMessage` path the UI uses |
 | `corpus.test.js` | Quality gates on a labelled mini-corpus (recall ≥ 0.75, FPR ≤ 0.25) |
 | `package.test.js` | Manifest targets exist, built HTML references resolve, CSP is strict, no `eval`/`innerHTML`/`console.log`, syntax of every source file |
+| `tests/frontend/messaging.test.js` | The UI↔worker contract: every message type, response shape, and error path |
+| `tests/frontend/constants.test.js` | Shared verdict metadata and settings defaults |
+| `tests/frontend/hooks.test.jsx` | `useSettings`, `useModelStatus`, `useScanHistory` — mount fetches, pushed updates, teardown |
+| `tests/frontend/components.test.jsx` | `Button`, `Badge`, `TabBar`, `EmptyState`, `Icon` |
 
 `tests/helpers/chrome-mock.js` is a small `chrome.*` stub; extend it rather than
 reaching for a heavyweight fake.
 
 ### What is not covered
 
-The React components and hooks are **not** unit tested. They are ESM `.jsx` under
-a CommonJS package, so Node cannot load them without a transform. The build gate
-in CI catches import and type errors; behaviour is covered by manual testing.
-Adding Vitest + Testing Library is the intended next step — see "Good first issues".
+`src/content.js` — the DOM extraction and badge injection. It needs a jsdom
+fixture per provider, which does not exist yet.
 
 ### Writing a test
 
@@ -225,9 +234,9 @@ test coverage, then style. Expect the first two to be non-negotiable.
 
 ## Good first issues
 
-- **Add Vitest** for the React popup and hooks (`frontend/src/lib/messaging.js`
-  against the existing chrome mock is the highest-value target).
-- **Test `src/content.js` extraction** with a jsdom fixture per provider.
+- **Test `src/content.js` extraction** with a jsdom fixture per provider — the
+  last uncovered surface, and the one most likely to break when Gmail or Outlook
+  ships a redesign.
 - **Unify the Firefox popup** with the React one so both browsers ship one UI.
 - **Report `senderEmail` for Gmail** as a first-class selector instead of relying
   on the `[email]` attribute fallback.

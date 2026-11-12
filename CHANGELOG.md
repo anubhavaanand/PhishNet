@@ -45,6 +45,33 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
 
 ## [Unreleased]
 
+### Added
+- Test suite rebuilt on Node's built-in runner (`npm test`), replacing the
+  hand-rolled harness: 112 tests across detector, selectors, error boundary,
+  service-worker message contract, labelled corpus, and package integrity
+- `tests/helpers/chrome-mock.js` — a chrome.* stub for exercising the service
+  worker through the real `chrome.runtime.onMessage` contract
+- CI now builds the frontend before testing, and fails a PR whose popup does not
+  compile or whose manifest points at files that were never built
+
+### Fixed
+- Popup and options page build to the wrong path (`dist/frontend/popup.html`) and
+  emitted absolute `/assets/` URLs that 404 under `chrome-extension://`; both now
+  build to `dist/popup.html` / `dist/options.html` with relative paths
+- `useSettings` imported `DEFAULT_SETTINGS` from `lib/messaging`, which never
+  exported it — the frontend build failed on every clean checkout
+- `theme` was missing from the service worker's defaults and storage read list,
+  so the selected theme reverted on service-worker restart
+- `vendor/ort-wasm/ort-wasm-simd-threaded.jsep.wasm` had been committed truncated
+  (512 KB of 21.6 MB) and failed to compile; restored from the known-good build
+- The release zip never contained `dist/`, so packaged builds shipped a manifest
+  pointing at a popup that did not exist
+- `public/test-emails.html` is no longer bundled into the shipped extension
+
+### Changed
+- `CONTRIBUTING.md` rewritten for the current React + Vite architecture, with
+  accurate setup, test, and review instructions
+
 ## [1.1.0] - Detection Engine Upgrade
 
 ### Added

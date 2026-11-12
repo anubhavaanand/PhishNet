@@ -1,6 +1,6 @@
 # PhishNet Audit Index
 
-210 findings (F-001–F-210) from a full read of the codebase. Full detail in  and ; each finding is also an individual GitHub issue.
+210 findings (F-001–F-210) from a full read of the codebase. Full detail in `SECURITY_AUDIT.md` and `SECURITY_AUDIT_PART2.md`; each finding is also an individual GitHub issue.
 
 ## Critical
 
@@ -40,9 +40,9 @@
 
 ## How to navigate
 
-- Filter by severity: , , , 
-- Filter by category: , , , , , , , 
-- Filter by area: , , , , , 
+- Filter by severity: `label:critical`, `label:high`, `label:medium`, `label:low`
+- Filter by category: `label:security`, `label:privacy`, `label:bug`, `label:performance`, `label:maintainability`, `label:ci`, `label:docs`, `label:accessibility`
+- Filter by area: `label:false-positive`, `label:build`, `label:supply-chain`, `label:csp`, `label:permissions`, `label:ui`
 
 ---
 

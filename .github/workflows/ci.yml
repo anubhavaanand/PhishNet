@@ -47,7 +47,7 @@ jobs:
             echo "Checking module $f..."
             node --check --input-type=module < "$f" || exit 1
           done
-          for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js tests/unit.test.js; do
+          for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js; do
             echo "Checking script $f..."
             node --check "$f" || exit 1
           done

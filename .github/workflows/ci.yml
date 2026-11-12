@@ -106,6 +106,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+
+      # dist/ is gitignored, so it must be built before the manifest-reference
+      # check below can be meaningful. Without this the check fails on every
+      # push even when the manifest is correct.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build extension UI
+        run: npm run build
+
       - name: Verify required files exist
         run: |
           required_files=(
@@ -188,6 +203,30 @@ jobs:
             console.log('✅ All manifest references valid');
           "
 
+      # A page can exist while referencing assets that do not resolve. That is
+      # exactly the "blank popup" failure: manifest check passes, popup is dead.
+      - name: Verify built pages reference existing assets
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            const pages = [manifest.action.default_popup, manifest.options_page].filter(Boolean);
+            let bad = 0;
+            for (const page of pages) {
+              if (!fs.existsSync(page)) { console.error('❌ page missing:', page); bad++; continue; }
+              const html = fs.readFileSync(page, 'utf8');
+              const refs = [...html.matchAll(/(?:src|href)=\"([^\"]+)\"/g)].map(m => m[1]);
+              for (const ref of refs) {
+                if (/^(https?:)?\/\//.test(ref)) { console.error('❌ remote URL in', page, ref); bad++; continue; }
+                const target = path.resolve(path.dirname(page), ref);
+                if (!fs.existsSync(target)) { console.error('❌ broken ref:', page, '->', ref); bad++; }
+              }
+              console.log('✅ ' + page + ' references ' + refs.length + ' local asset(s)');
+            }
+            process.exit(bad ? 1 : 0);
+          "
+
       - name: Check icon dimensions
         run: |
           for size in 16 32 48 128; do
@@ -229,6 +268,19 @@ jobs:
           VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('manifest.json')).version)")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      # dist/ is gitignored, so the packaged extension needs a fresh build.
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build extension UI
+        run: npm run build
+
       - name: Create extension zip
         run: |
           zip -r "phishnet-v${{ steps.version.outputs.version }}.zip" \
@@ -236,14 +288,22 @@ jobs:
             src/ \
             public/ \
             vendor/ \
+            dist/ \
             LICENSE \
             PRIVACY_POLICY.md \
             README.md \
-            -x "*.git*" "node_modules/*" "doc/*" ".gitignore" ".DS_Store" "generate_*" ".github/*" "tests/*"
+            -x "*.git*" "node_modules/*" "doc/*" ".gitignore" ".DS_Store" "generate_*" ".github/*" "tests/*" "public/test-emails.html"
 
       - name: Verify zip contents
         run: |
           unzip -l "phishnet-v${{ steps.version.outputs.version }}.zip"
+          # The manifest points here; a zip without it ships a broken extension.
+          for page in $(node -e "const m=require('./manifest.json');console.log([m.action.default_popup,m.options_page].filter(Boolean).join(' '))"); do
+            unzip -l "phishnet-v${{ steps.version.outputs.version }}.zip" | grep -q "$page" || {
+              echo "❌ packaged zip is missing $page"; exit 1;
+            }
+          done
+          echo "✅ packaged zip contains every page the manifest references"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

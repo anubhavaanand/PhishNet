@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSettings, updateSettings, onSettingsUpdate, DEFAULT_SETTINGS } from '@/lib/messaging';
+import { getSettings, updateSettings, onSettingsUpdate } from '@/lib/messaging';
+import { DEFAULT_SETTINGS } from '@/lib/constants';
 
 /**
  * React hook for extension settings.

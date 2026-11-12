@@ -198,7 +198,7 @@ npm run build     # must succeed
 - [ ] No email content leaves the browser
 - [ ] Firefox path considered if you touched the popup or background
 - [ ] Tests added or updated
-- [ ] Docs updated (`README.md`, `doc/DESIGN.md`, `CHANGELOG.md`)
+- [ ] Docs updated (`README.md`, `CHANGELOG.md`)
 - [ ] `CHANGELOG.md` entry under `Unreleased`
 
 ### Commits

@@ -10,7 +10,7 @@
     "128": "public/icons/icon-128.png"
   },
   "action": {
-    "default_popup": "dist/popup.html",
+    "default_popup": "src/popup.html",
     "default_title": "PhishNet - Phishing Detector",
     "default_icon": {
       "16": "public/icons/icon-16.png",
@@ -19,7 +19,6 @@
       "128": "public/icons/icon-128.png"
     }
   },
-  "options_page": "dist/options.html",
   "background": {
     "service_worker": "src/background.js",
     "type": "module"

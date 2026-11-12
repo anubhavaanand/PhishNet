@@ -36,9 +36,24 @@ coverage/
 .eslintcache
 # Agent/dev tooling
 .jules/
+.bolt/
 
 # Serena MCP
 .serena/
+
+# Generated art not referenced by the README or the site.
+# Only assets/banner.gif and assets/phishnet_mountain_banner.gif ship.
+assets/banner.png
+assets/scenery.gif
+assets/scenery.png
+assets/scenery-768x384.gif
+assets/banner-768x192.gif
+assets/scenery_mountain_lake.png
+assets/scenery_mountain_lake_846.png
+assets/scenery_cozy_room.png
+assets/scenery_cozy_room_846.png
+assets/phishnet_mountain_scenery.gif
+assets/phishnet_mountain_scenery.png
 
 # Firefox build output
 dist-firefox/

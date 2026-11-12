@@ -47,7 +47,7 @@ jobs:
             echo "Checking module $f..."
             node --check --input-type=module < "$f" || exit 1
           done
-          for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js tests/unit.test.js; do
+          for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js; do
             echo "Checking script $f..."
             node --check "$f" || exit 1
           done
@@ -248,10 +248,14 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
+          cache: npm
 
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # pretest builds dist/, which tests/package.test.js asserts against.
       - name: Run Unit Tests
-        run: |
-          node tests/unit.test.js
+        run: npm test
 
   package:
     name: Package Extension

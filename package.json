@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "pretest": "vite build",
-    "test": "node --test tests/",
-    "test:watch": "node --test --watch tests/",
+    "test": "npm run test:unit && npm run test:ui",
+    "test:unit": "node --test tests/*.test.js tests/*.test.mjs",
+    "test:ui": "vitest run",
+    "test:watch": "node --test --watch tests/*.test.js tests/*.test.mjs",
+    "test:ui:watch": "vitest",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -16,7 +19,12 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.10",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.10"
+    "jsdom": "^25.0.1",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.9"
   }
 }

@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS = {
   sensitivityThreshold: 0.7,
   highlightLinks: true,
   showTooltip: true,
+  theme: 'auto',
   whitelist: ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com'],
 };
 

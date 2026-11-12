@@ -5,9 +5,11 @@
   "description": "Privacy-first phishing email detector using on-device AI",
   "scripts": {
     "dev": "vite",
+    "pretest": "vite build",
+    "test": "node --test tests/",
+    "test:watch": "node --test --watch tests/",
     "build": "vite build",
-    "preview": "vite preview",
-    "test": "node tests/unit.test.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.3.1",

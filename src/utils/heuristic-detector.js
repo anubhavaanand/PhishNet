@@ -253,7 +253,13 @@
 
   function analyzeAttachment(filename = '') {
     if (!filename) return { dangerous: false };
-    const lowerName = filename.toLowerCase().trim();
+    // Normalize display-control obfuscation, NTFS alternate data streams, and
+    // Windows' ignored trailing dots/spaces before inspecting the extension.
+    const lowerName = filename.toLowerCase()
+      .replace(/[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '')
+      .replace(/:([^:/\\]*:)?\$data$/i, '')
+      .trim()
+      .replace(/[. ]+$/g, '');
     const doubleExtMatch = lowerName.match(/\.([a-z0-9]+)\.([a-z0-9]+)$/i);
     if (doubleExtMatch && DANGEROUS_EXTENSIONS.has(doubleExtMatch[2])) {
       return { filename, dangerous: true, reason: `Deceptive double extension detected: .${doubleExtMatch[1]}.${doubleExtMatch[2]}` };

@@ -55,6 +55,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   compile or whose manifest points at files that were never built
 
 ### Fixed
+- Content scripts now unregister their runtime message listeners on unload,
+  preventing stale handlers from lingering across initialization cycles.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

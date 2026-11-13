@@ -279,6 +279,8 @@
 
     let parsed;
     try { parsed = new URL(raw); } catch { return true; }
+    // Userinfo precedes the @ sign, not the host. It can disguise a phishing URL.
+    if (parsed.username || parsed.password) return true;
     const domain = parsed.hostname.toLowerCase();
 
     if (detectHomographAttack(domain)) return true;

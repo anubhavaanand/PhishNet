@@ -135,6 +135,12 @@ describe('URL analysis', () => {
     assert.equal(isUrlSuspicious('vbscript:msgbox(1)'), true);
   });
 
+  test('flags URLs whose credentials disguise the actual destination host', () => {
+    assert.equal(isUrlSuspicious('https://paypal.com@evil.example.com/login'), true);
+    assert.equal(isUrlSuspicious('https://github.com:password@ordinary.example.com/'), true);
+    assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
+  });
+
   test('flags open-redirect parameters', () => {
     assert.equal(
       isUrlSuspicious('https://newsletter-provider.example.net/?redirect=https://evil.example.tk/login'),

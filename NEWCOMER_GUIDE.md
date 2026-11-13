@@ -42,7 +42,7 @@ See [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) for the full policy and the "Privac
 | `src/utils/logger.js`, `src/utils/error-boundary.js` | Logging and error handling — use these instead of raw `console.log` |
 | `src/styles.css` | Badge / inspector styling, light + dark themes |
 | `frontend/` | React popup + options UI, built with Vite into `dist/` |
-| `tests/unit.test.js` | 30 plain-Node unit tests (no test framework) |
+| `tests/` | 175 tests: six `node --test` suites for the extension core, plus Vitest suites under `tests/frontend/` for the React popup |
 | `public/` | Icons, offscreen page, and the `test-emails.html` interactive playground |
 | `vendor/` | Locally bundled ONNX Runtime + Transformers.js (no CDNs — CSP requires it) |
 | `docs/` | GitHub Pages site |
@@ -82,9 +82,9 @@ Then load it in the browser:
 These are the same checks CI runs (`.github/workflows/ci.yml`), so if they pass locally your PR will too.
 
 ```bash
-# Unit tests (30 tests, plain Node — no framework)
-node tests/unit.test.js
-# → Tests Passed: 30 | Failed: 0
+# All tests: node --test suites, then Vitest for the React UI
+npm test
+# → 112 node tests + 63 Vitest tests, all passing
 
 # Syntax-check a single file
 node --check src/utils/heuristic-detector.js
@@ -98,7 +98,7 @@ node -e "const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8'));
 
 # JS syntax (module files vs plain scripts, same split as CI)
 for f in src/background.js src/offscreen.js src/popup.js src/utils/logger.js; do node --check --input-type=module < "$f" || exit 1; done
-for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js tests/unit.test.js; do node --check "$f" || exit 1; done
+for f in src/selectors.js src/utils/error-boundary.js src/utils/heuristic-detector.js src/content.js; do node --check "$f" || exit 1; done
 
 # No raw console.log in production code (use src/utils/logger.js)
 ! grep -r "console\.log" src/ --include="*.js" | grep -v "console\.error\|console\.warn\|IS_DEBUG"
@@ -122,12 +122,12 @@ gh issue list -R anubhavaanand/Project-Cyan-PhishNet --label "help wanted"
 
 | Area | File(s) | Good first task ideas |
 | --- | --- | --- |
-| Detection heuristics | `src/utils/heuristic-detector.js` | Add a lookalike brand to `HIGH_PROFILE_BRANDS`, add a suspicious TLD, tighten a regex, add unit tests in `tests/unit.test.js` |
+| Detection heuristics | `src/utils/heuristic-detector.js` | Add a lookalike brand to `HIGH_PROFILE_BRANDS`, add a suspicious TLD, tighten a regex, add a case to `tests/detector.test.js` |
 | Selectors | `src/selectors.js` | Fix/refresh Gmail or Outlook DOM selectors (add a fallback selector) |
 | Popup UI | `frontend/src/**`, `src/styles.css` | Improve accessibility (ARIA labels, keyboard nav), dark-mode polish |
 | Logging / errors | `src/utils/logger.js`, `src/utils/error-boundary.js` | Add JSDoc, safer error handling |
 | Docs | `README.md`, `CONTRIBUTING.md`, `PRIVACY_POLICY.md` | Fix typos, clarify setup, add missing JSDoc/comments |
-| Tests | `tests/unit.test.js` | Add tests for uncovered heuristics (see the test file for patterns) |
+| Tests | `tests/` | Add cases to an existing suite, or cover `src/content.js` (see CONTRIBUTING → Testing) |
 
 No suitable issue? Open one — use the **Bug report** or **Feature request** template from the issue chooser, and for features, discuss the design first (that's the rule in `CONTRIBUTING.md`).
 
@@ -143,7 +143,7 @@ No suitable issue? Open one — use the **Bug report** or **Feature request** te
    git checkout -b fix/short-description      # or feature/short-description
    ```
 4. **Make focused changes** with clear commits (format below).
-5. **Test locally** — run `node tests/unit.test.js`, rebuild if you touched `frontend/`, and manually test on **both Gmail and Outlook**.
+5. **Test locally** — run `npm test`, rebuild if you touched `frontend/`, and manually test on **both Gmail and Outlook**.
 6. **Update docs** if behavior or architecture changed (and add a `CHANGELOG.md` entry for user-facing changes — the PR template asks for it).
 7. **Open a PR** — the PR template (`.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`) is attached automatically; fill it in and link the issue with `Fixes #<issue-number>`.
 
@@ -167,7 +167,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
 | --- | --- |
 | **Lint & Syntax Check** | manifest validity, `node --check` on every JS file, no raw `console.log`, CSP compliance (no inline scripts, no `eval`) |
 | **Validate Extension Structure** | required files exist, manifest references resolve on disk, icon dimensions; also runs `npm ci` + `npm run build` first and verifies every asset the built popup/options pages reference resolves |
-| **Unit Tests** | `node tests/unit.test.js` |
+| **Unit Tests** | `npm test` — six `node --test` suites plus Vitest |
 
 All three must be green before review starts. (The "Package Extension" job only runs on pushes to `main`.)
 

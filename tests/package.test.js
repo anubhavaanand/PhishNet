@@ -195,6 +195,11 @@ describe('module syntax', () => {
 });
 
 describe('required project files', () => {
+  test('Dependabot does not silently exclude all major dependency updates', () => {
+    const config = read('.github/dependabot.yml');
+    assert.doesNotMatch(config, /dependency-name:\s*["']?\*["']?/);
+  });
+
   test('ships the files the store listing and license require', () => {
     for (const file of ['LICENSE', 'README.md', 'PRIVACY_POLICY.md', 'CHANGELOG.md', 'CONTRIBUTING.md']) {
       assert.ok(exists(file), `missing ${file}`);

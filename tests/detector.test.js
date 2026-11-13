@@ -135,6 +135,14 @@ describe('URL analysis', () => {
     assert.equal(isUrlSuspicious('vbscript:msgbox(1)'), true);
   });
 
+  test('flags links with non-web, non-mail URI schemes', () => {
+    for (const url of ['ftp://github.com/file', 'file:///etc/passwd', 'ws://github.com/socket', 'wss://github.com/socket']) {
+      assert.equal(isUrlSuspicious(url), true, `expected ${url} to be suspicious`);
+    }
+    assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
+    assert.equal(isUrlSuspicious('mailto:security@example.com'), false);
+  });
+
   test('flags open-redirect parameters', () => {
     assert.equal(
       isUrlSuspicious('https://newsletter-provider.example.net/?redirect=https://evil.example.tk/login'),

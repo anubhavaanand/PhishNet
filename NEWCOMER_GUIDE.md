@@ -63,8 +63,7 @@ cd Project-Cyan-PhishNet
 npm ci
 
 # 3. Build the React popup + options UI  (dist/ is gitignored, so this is required)
-npm run build          # -> dist/frontend/popup.html
-npm run build:options  # -> dist/frontend/options.html
+npm run build          # -> dist/popup.html + dist/options.html
 ```
 
 Then load it in the browser:
@@ -72,7 +71,7 @@ Then load it in the browser:
 1. Open `chrome://extensions/`
 2. Enable **Developer mode**
 3. Click **"Load unpacked"** and select this folder
-4. Pin the PhishNet icon — the popup opens from `dist/frontend/popup.html`, which is why step 3 above matters
+4. Pin the PhishNet icon — the popup opens from `dist/popup.html`, which is why step 3 above matters
 
 > 💡 The content scripts (`src/`) are plain vanilla JS with **no build step** — only the popup/options UI needs the one-time Vite build. The ~50 MB quantized model downloads once on your first scan and is cached locally afterwards.
 
@@ -167,7 +166,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
 | Job | What it does |
 | --- | --- |
 | **Lint & Syntax Check** | manifest validity, `node --check` on every JS file, no raw `console.log`, CSP compliance (no inline scripts, no `eval`) |
-| **Validate Extension Structure** | required files exist, manifest references resolve on disk, icon dimensions |
+| **Validate Extension Structure** | required files exist, manifest references resolve on disk, icon dimensions; also runs `npm ci` + `npm run build` first and verifies every asset the built popup/options pages reference resolves |
 | **Unit Tests** | `node tests/unit.test.js` |
 
 All three must be green before review starts. (The "Package Extension" job only runs on pushes to `main`.)
@@ -210,7 +209,7 @@ Copied from the PR template — you'll tick these boxes yourself:
 
 ## 🐛 Troubleshooting
 
-- **`dist/` folder missing / popup won't open** — `dist/` is gitignored, so a fresh clone needs `npm ci && npm run build && npm run build:options` before "Load unpacked".
+- **`dist/` folder missing / popup won't open** — `dist/` is gitignored, so a fresh clone needs `npm ci && npm run build` before "Load unpacked".
 - **`npm ci` fails** — make sure you're on Node 20+ and that the lockfile is untouched (`git status` clean).
 - **Build error about an import** — run `npm run build` again after pulling the latest `main`; if it still fails, open an issue rather than working around it locally.
 - **Selectors stopped firing after a Gmail/Outlook redesign** — that's a normal, very welcome contribution: update `src/selectors.js` and add a fallback selector.

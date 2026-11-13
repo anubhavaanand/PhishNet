@@ -191,6 +191,26 @@ Detection changes need a note on expected false-positive impact.
 
 Label `good first issue` is reserved for work with a clear, bounded scope.
 
+### Claiming an issue
+
+We claim by comment, so two people don't end up doing the same work.
+
+1. **Comment on the issue first** — "I'd like to take this." A maintainer will
+   assign it to you.
+2. **Wait to be assigned** before you start. Usually within a day or two; a
+   gentle ping after three days is fine.
+3. **Don't open a PR for an issue someone else holds.** If you want it anyway,
+   ask in the thread.
+4. **Claims go stale after 7 days** with no activity and no PR. Comment to keep
+   it, or it goes back to the pool.
+5. **One issue per PR.** If you find a second bug while working, file it
+   separately rather than folding it in.
+
+Issues labelled `good first issue` are exempt from step 2 — just open the PR.
+
+If you are not sure whether an issue is still wanted, ask before starting. A
+two-line comment is cheaper than a wasted evening.
+
 ---
 
 ## Pull requests

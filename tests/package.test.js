@@ -78,9 +78,12 @@ describe('manifest', () => {
     }
   });
 
-  test('declares the permissions the worker actually uses', () => {
-    for (const perm of ['storage', 'offscreen', 'activeTab', 'scripting']) {
+  test('declares only the API permissions the worker actually uses', () => {
+    for (const perm of ['storage', 'offscreen']) {
       assert.ok(manifest.permissions.includes(perm), `missing permission: ${perm}`);
+    }
+    for (const perm of ['activeTab', 'scripting']) {
+      assert.ok(!manifest.permissions.includes(perm), `unused permission: ${perm}`);
     }
   });
 

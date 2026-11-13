@@ -7,12 +7,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-38BDF8.svg)](LICENSE)
 [![Chrome MV3](https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
 [![Tests](https://img.shields.io/badge/tests-30%2F30-10B981.svg)](#-tech-specs--performance)
-[![CI](https://github.com/anubhavaanand/PhishNet/actions/workflows/ci.yml/badge.svg)](https://github.com/anubhavaanand/PhishNet/actions/workflows/ci.yml)
+[![CI](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml/badge.svg)](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml)
 
 **On-device AI email security for Gmail and Outlook.**  
 Powered by local DistilBERT & ONNX Web Runtime — no cloud uploads, zero telemetry.
 
-[Website](https://anubhavaanand.github.io/PhishNet/) · [Install](#-quick-install) · [Architecture](#-how-it-works) · [Privacy](PRIVACY_POLICY.md) · [Report Bug](https://github.com/anubhavaanand/PhishNet/issues)
+[Website](https://anubhavaanand.github.io/code-cyan-phishNet/) · [Install](#-quick-install) · [Architecture](#-how-it-works) · [Privacy](PRIVACY_POLICY.md) · [Report Bug](https://github.com/anubhavaanand/code-cyan-phishNet/issues)
 
 </div>
 
@@ -40,7 +40,7 @@ Powered by local DistilBERT & ONNX Web Runtime — no cloud uploads, zero teleme
 
 ### ⚡ Quick Install
 
-1. **Download & Extract** the latest [release ZIP](https://github.com/anubhavaanand/PhishNet/archive/refs/heads/main.zip) (or `git clone https://github.com/anubhavaanand/PhishNet.git`).
+1. **Download & Extract** the latest [release ZIP](https://github.com/anubhavaanand/code-cyan-phishNet/archive/refs/heads/main.zip) (or `git clone https://github.com/anubhavaanand/code-cyan-phishNet.git`).
 2. Go to `chrome://extensions` and enable **Developer mode** (top-right toggle).
 3. Click **Load unpacked** and select the folder.
 
@@ -95,6 +95,8 @@ Click the verdict badge to inspect which heuristic or model signal fired, then c
 ### 🤝 Contributing
 
 **New here? Start with the [Newcomer Guide](NEWCOMER_GUIDE.md)** — local setup, the checks CI runs, good-first-issue entry points, and your first PR, step by step. Full details live in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The flow is a standard fork-and-pull-request, with one addition: **claim the issue before you start**. Comment `/assign-me` on an open issue and the bot labels it yours and gives you 7 days to open the PR. Comment `/release` to hand it back. Up to 3 claims at a time.
 
 ---
 

@@ -1,0 +1,43 @@
+name: Issue assignment
+
+# Self-assignment for issues, since GitHub will not assign non-collaborators
+# (isaacs/github#100). Claim by commenting `/assign-me`, release with
+# `/release`. The decision table lives in .github/scripts/assign.js and is
+# covered by tests/assign.test.js.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  # Two /assign-me comments racing must not both pass the cap check.
+  group: assign-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  assign:
+    name: Assign or release
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+
+      - name: Run the assignment bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: node .github/scripts/assign.js

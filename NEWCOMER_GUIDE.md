@@ -24,7 +24,7 @@ See [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) for the full policy and the "Privac
 2. [`CONTRIBUTING.md`](CONTRIBUTING.md) — code style, architecture principles, PR process, privacy guidelines.
 3. [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) — how we treat each other.
 4. [`SECURITY.md`](SECURITY.md) — how to report vulnerabilities privately.
-5. This guide — the shortest path from clone to merged PR.
+5. This guide — the shortest path from clone to merged PR, including how to **claim an issue** before you start.
 6. Skim the code map below so you know where things live.
 
 ---
@@ -55,14 +55,17 @@ See [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) for the full policy and the "Privac
 **Prerequisites:** Git, **Node.js 20+** (CI runs on Node 20), npm, and Chrome or Edge 109+.
 
 ```bash
-# 1. Fork the repo on GitHub, then clone YOUR fork
-git clone https://github.com/<your-username>/Project-Cyan-PhishNet.git
-cd Project-Cyan-PhishNet
+# 1. Fork the repo on GitHub (the "Fork" button, top-right), then clone YOUR fork
+git clone https://github.com/<your-username>/code-cyan-phishNet.git
+cd code-cyan-phishNet
 
-# 2. Install dependencies (exact versions from package-lock.json)
+# 2. Point upstream at the real repo so you can sync before each PR
+git remote add upstream https://github.com/anubhavaanand/code-cyan-phishNet.git
+
+# 3. Install dependencies (exact versions from package-lock.json)
 npm ci
 
-# 3. Build the React popup + options UI  (dist/ is gitignored, so this is required)
+# 4. Build the React popup + options UI  (dist/ is gitignored, so this is required)
 npm run build          # -> dist/popup.html + dist/options.html
 ```
 
@@ -84,7 +87,7 @@ These are the same checks CI runs (`.github/workflows/ci.yml`), so if they pass 
 ```bash
 # All tests: node --test suites, then Vitest for the React UI
 npm test
-# → 112 node tests + 63 Vitest tests, all passing
+# → 149 node tests + 57 Vitest tests, all passing
 
 # Syntax-check a single file
 node --check src/utils/heuristic-detector.js
@@ -116,8 +119,8 @@ CI also validates `manifest.json` references (icons, content scripts, popup/opti
 The tracker uses the **`good first issue`** and **`help wanted`** labels for curated starter tasks:
 
 ```bash
-gh issue list -R anubhavaanand/Project-Cyan-PhishNet --label "good first issue"
-gh issue list -R anubhavaanand/Project-Cyan-PhishNet --label "help wanted"
+gh issue list -R anubhavaanand/code-cyan-phishNet --label "good first issue"
+gh issue list -R anubhavaanand/code-cyan-phishNet --label "help wanted"
 ```
 
 | Area | File(s) | Good first task ideas |
@@ -135,17 +138,20 @@ No suitable issue? Open one — use the **Bug report** or **Feature request** te
 
 ## ✅ Contribution workflow (step by step)
 
-1. **Check existing issues first** — comment on the issue to claim it so work isn't duplicated.
-2. **Fork** the repository (the "Fork" button, top-right).
+1. **Claim the issue first** — find an open issue with no `claimed` label, then comment `/assign-me`. The bot replies 🚀, labels it yours, and gives you **7 days** to open a PR. This is the one rule that is different from a normal GitHub project; everything else below is standard.
+2. **Fork** the repository (the "Fork" button, top-right) and clone **your fork**.
 3. **Sync and branch** off `main`:
    ```bash
-   git checkout main && git pull
+   git fetch upstream
+   git checkout main && git merge --ff-only upstream/main
    git checkout -b fix/short-description      # or feature/short-description
    ```
 4. **Make focused changes** with clear commits (format below).
 5. **Test locally** — run `npm test`, rebuild if you touched `frontend/`, and manually test on **both Gmail and Outlook**.
 6. **Update docs** if behavior or architecture changed (and add a `CHANGELOG.md` entry for user-facing changes — the PR template asks for it).
-7. **Open a PR** — the PR template (`.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`) is attached automatically; fill it in and link the issue with `Fixes #<issue-number>`.
+7. **Open a PR against `anubhavaanand/code-cyan-phishNet:main`** — the PR template (`.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`) is attached automatically; fill it in and link the issue with `Fixes #<issue-number>`.
+
+**Done with an issue early?** Comment `/release` on it and take another. You can hold up to **3** at a time.
 
 **Commit message format:**
 
@@ -167,7 +173,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`.
 | --- | --- |
 | **Lint & Syntax Check** | manifest validity, `node --check` on every JS file, no raw `console.log`, CSP compliance (no inline scripts, no `eval`) |
 | **Validate Extension Structure** | required files exist, manifest references resolve on disk, icon dimensions; also runs `npm ci` + `npm run build` first and verifies every asset the built popup/options pages reference resolves |
-| **Unit Tests** | `npm test` — six `node --test` suites plus Vitest |
+| **Unit Tests** | `npm test` — the `node --test` suites plus Vitest |
 
 All three must be green before review starts. (The "Package Extension" job only runs on pushes to `main`.)
 

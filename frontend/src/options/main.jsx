@@ -212,7 +212,7 @@ function OptionsApp() {
             </div>
             <div style={{ display: 'flex', gap: 'var(--pn-space-3)', marginTop: 'var(--pn-space-2)' }}>
               <a
-                href="https://github.com/anubhavaanand/PhishNet"
+                href="https://github.com/anubhavaanand/code-cyan-phishNet"
                 target="_blank"
                 rel="noopener"
                 style={{
@@ -232,7 +232,7 @@ function OptionsApp() {
                 <Icon name="github" size={16} /> Source Code
               </a>
               <a
-                href="https://github.com/anubhavaanand/PhishNet/blob/main/PRIVACY_POLICY.md"
+                href="https://github.com/anubhavaanand/code-cyan-phishNet/blob/main/PRIVACY_POLICY.md"
                 target="_blank"
                 rel="noopener"
                 style={{

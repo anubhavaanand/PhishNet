@@ -14,6 +14,8 @@
 ### Related Issue
 <!-- Link to issue: Fixes #123 -->
 
+- [ ] I claimed this issue first with `/assign-me` — or explained below why it could not be claimed
+
 ### Privacy Checklist (Required)
 - [ ] No new network requests for email content
 - [ ] No new external data storage

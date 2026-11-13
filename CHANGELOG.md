@@ -53,6 +53,11 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   worker through the real `chrome.runtime.onMessage` contract
 - CI now builds the frontend before testing, and fails a PR whose popup does not
   compile or whose manifest points at files that were never built
+- `.github/workflows/assign.yml` — self-assignment for issues. Comment
+  `/assign-me` to claim (up to 3 at a time, 7 days to open a PR) and `/release`
+  to hand one back. GitHub will not assign non-collaborators (isaacs/github#100),
+  so a claim is recorded as `claimed` + `claimed/@<login>` labels rather than an
+  assignee. The decision table is unit-tested in `tests/assign.test.js`
 
 ### Fixed
 - Removed unused `activeTab` and `scripting` permissions; the extension

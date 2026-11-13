@@ -349,7 +349,7 @@
         <p class="mail-line">
           Dear customer, your account has been <b style="color:#FDA4AF">suspended</b>.
           Confirm your identity within 24 hours at
-          <a class="bad-link" href="#" onclick="return false">secure-verify.tk/login</a> <span class="link-warn">⚠️</span><br>
+          <a class="bad-link" href="#" data-preview-link="inert">secure-verify.tk/login</a> <span class="link-warn">⚠️</span><br>
           or permanently lose access to your funds.
         </p>
         <p style="margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:11.5px; color:var(--muted)">
@@ -469,6 +469,10 @@
 
 <script type="module">
 import * as THREE from './vendor/three.module.js';
+
+// Keep the fictional phishing link inert without an inline event handler.
+document.querySelector('[data-preview-link="inert"]')?.addEventListener('click', (event) => event.preventDefault());
+const demoDebug = new URLSearchParams(window.location.search).get('debug') === '1';
 
 const canvas = document.getElementById('scene-canvas');
 const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -681,7 +685,7 @@ function makeMiniStage(canvasId, { camZ = 5, setup, spin = 0.15 } = {}) {
       inited = true;
     } catch (err) {
       failed = true;
-      console.warn('[PhishNet] 3D stage unavailable:', err.message);
+      if (demoDebug) console.warn('[PhishNet] 3D stage unavailable:', err.message);
       stage.style.background = 'radial-gradient(ellipse at 50% 40%, rgba(111,214,160,.12), transparent 70%), #0A120D';
     }
   }
@@ -939,7 +943,6 @@ let netFrame = 0;
 
 function tick() {
   rafId = requestAnimationFrame(tick);
-  window.__pnRenders = (window.__pnRenders || 0) + 1; // test/debug hook
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
 

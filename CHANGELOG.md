@@ -55,6 +55,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   compile or whose manifest points at files that were never built
 
 ### Fixed
+- Dependabot now offers major dependency updates for review instead of
+  ignoring every major release by default.
 - Popup and options page build to the wrong path (`dist/frontend/popup.html`) and
   emitted absolute `/assets/` URLs that 404 under `chrome-extension://`; both now
   build to `dist/popup.html` / `dist/options.html` with relative paths

@@ -141,15 +141,20 @@
   function safeSendMessage(message, timeout = 5000) {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('Message timeout')), timeout);
-      
-      chrome.runtime.sendMessage(message, (response) => {
+
+      try {
+        chrome.runtime.sendMessage(message, (response) => {
+          clearTimeout(timer);
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      } catch (error) {
         clearTimeout(timer);
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else {
-          resolve(response);
-        }
-      });
+        reject(error);
+      }
     });
   }
 

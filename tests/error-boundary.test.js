@@ -14,6 +14,7 @@ const {
   throttle,
   generateId,
   isVisible,
+  safeSendMessage,
 } = require('../src/utils/error-boundary.js');
 
 // isVisible() reads window.getComputedStyle, so give it a minimal window.
@@ -147,5 +148,29 @@ describe('isVisible', () => {
     globalThis.window.getComputedStyle = () => ({ display: 'none', visibility: 'visible', opacity: '1' });
     assert.equal(isVisible({ offsetWidth: 100, offsetHeight: 20 }), false);
     globalThis.window.getComputedStyle = () => ({ display: 'block', visibility: 'visible', opacity: '1' });
+  });
+});
+
+describe('safeSendMessage', () => {
+  test('resolves the callback response', async () => {
+    const priorChrome = globalThis.chrome;
+    globalThis.chrome = { runtime: { lastError: null, sendMessage: (_message, cb) => cb({ success: true }) } };
+    try {
+      assert.deepEqual(await safeSendMessage({ type: 'CHECK' }, 50), { success: true });
+    } finally {
+      globalThis.chrome = priorChrome;
+    }
+  });
+
+  test('rejects immediately if the browser context invalidates synchronously', async () => {
+    const priorChrome = globalThis.chrome;
+    globalThis.chrome = { runtime: {
+      sendMessage: () => { throw new Error('Extension context invalidated'); }
+    } };
+    try {
+      await assert.rejects(safeSendMessage({ type: 'CHECK' }, 5000), /Extension context invalidated/);
+    } finally {
+      globalThis.chrome = priorChrome;
+    }
   });
 });

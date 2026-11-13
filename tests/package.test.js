@@ -121,6 +121,28 @@ describe('content security policy', () => {
 });
 
 describe('production source hygiene', () => {
+  test('new-tab links in shipped HTML cannot access the opener', () => {
+    const htmlFiles = [
+      'docs/index.html',
+      'frontend/options.html',
+      'frontend/popup.html',
+      'public/offscreen.html',
+      'src/popup.html',
+    ];
+    let checked = 0;
+    for (const file of htmlFiles) {
+      for (const [link] of read(file).matchAll(/<a\b[^>]*>/gi)) {
+        if (!/\btarget\s*=\s*["']_blank["']/i.test(link)) continue;
+        checked += 1;
+        assert.match(link, /\brel\s*=\s*["'][^"']*\bnoopener\b[^"']*["']/i, `${file}: ${link}`);
+        if (file === 'src/popup.html') {
+          assert.match(link, /\brel\s*=\s*["'][^"']*\bnoreferrer\b[^"']*["']/i, `${file}: ${link}`);
+        }
+      }
+    }
+    assert.ok(checked > 0, 'expected at least one new-tab link');
+  });
+
   const SRC_FILES = [
     'src/background.js',
     'src/offscreen.js',

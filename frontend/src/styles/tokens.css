@@ -274,6 +274,18 @@ html, body {
   to { transform: rotate(360deg); }
 }
 
+/* ===== Logo ===== */
+/* The hook lifts; the net answers a beat later, so the mark reads as hauling. */
+@keyframes pn-logo-lift {
+  0%, 100% { transform: translateY(0); }
+  45%      { transform: translateY(-0.9px); }
+}
+
+@keyframes pn-logo-net {
+  0%, 100% { opacity: 1; }
+  45%      { opacity: 0.5; }
+}
+
 /* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

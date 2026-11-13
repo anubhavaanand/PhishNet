@@ -10,6 +10,7 @@ export { EmptyState } from './EmptyState';
 export { Toast } from './Toast';
 export { AnimatedNumber } from './AnimatedNumber';
 export { Icon } from './Icon';
+export { LogoMark } from './LogoMark';
 export { Header } from './Header';
 export { TabBar } from './TabBar';
 export { ScanTab } from './ScanTab';

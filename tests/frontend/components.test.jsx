@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Button, Badge, TabBar, EmptyState, Icon } from '@/components';
+import { Button, Badge, TabBar, EmptyState, Icon, LogoMark } from '@/components';
 
 describe('Button', () => {
   it('renders its children', () => {
@@ -102,5 +102,49 @@ describe('Icon', () => {
   it('falls back rather than rendering nothing for an unknown name', () => {
     const { container } = render(<Icon name="not_a_real_icon" />);
     expect(container.querySelector('svg')).toBeInTheDocument();
+  });
+});
+describe('LogoMark', () => {
+  it('renders an svg with a viewBox', () => {
+    const { container } = render(<LogoMark />);
+    const svg = container.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg).toHaveAttribute('viewBox', '0 0 20 20');
+  });
+
+  it('draws both the hook and the net', () => {
+    const { container } = render(<LogoMark />);
+    // 12 hook runs + 25 net runs
+    expect(container.querySelectorAll('rect')).toHaveLength(37);
+  });
+
+  it('uses currentColor for a mono mark so it inherits the tile colour', () => {
+    const { container } = render(<LogoMark mono />);
+    const fills = [...container.querySelectorAll('rect')].map((r) => r.getAttribute('fill'));
+    expect(new Set(fills)).toEqual(new Set(['currentColor']));
+  });
+
+  it('colours the hook and net separately in the default variant', () => {
+    const { container } = render(<LogoMark />);
+    const fills = new Set([...container.querySelectorAll('rect')].map((r) => r.getAttribute('fill')));
+    expect(fills.size).toBe(2);
+  });
+
+  it('animates by default and can be stilled', () => {
+    const { container, rerender } = render(<LogoMark />);
+    expect(container.querySelector('g[style*="pn-logo-lift"]')).toBeInTheDocument();
+
+    rerender(<LogoMark animated={false} />);
+    expect(container.querySelector('g[style*="pn-logo-lift"]')).not.toBeInTheDocument();
+  });
+
+  it('is hidden from assistive tech unless given a title', () => {
+    const { container, rerender } = render(<LogoMark />);
+    expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+
+    rerender(<LogoMark title="PhishNet" />);
+    const svg = container.querySelector('svg');
+    expect(svg).toHaveAttribute('role', 'img');
+    expect(svg).toHaveAttribute('aria-label', 'PhishNet');
   });
 });

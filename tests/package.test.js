@@ -164,6 +164,14 @@ describe('production source hygiene', () => {
   });
 });
 
+describe('test-email playground DOM safety', () => {
+  test('clears test messages without assigning HTML strings', () => {
+    const source = read('public/test-emails.html');
+    assert.doesNotMatch(source, /\.innerHTML\s*=/);
+    assert.match(source, /list\.replaceChildren\(\)/);
+  });
+});
+
 describe('module syntax', () => {
   test('every ES module source parses', () => {
     const esm = ['src/background.js', 'src/offscreen.js', 'src/utils/logger.js'];

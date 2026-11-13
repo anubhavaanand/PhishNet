@@ -111,14 +111,16 @@ describe('whitelist management', () => {
 });
 
 describe('CLEAR_HISTORY', () => {
-  it('resets history and stats in local storage', async () => {
+  it('clears all extension-local scan data without erasing synced settings', async () => {
     mock.localStore.scanHistory = [{ id: 1 }];
     mock.localStore.scanStats = { total: 5 };
+    mock.localStore.futureThreatCache = { private: 'sensitive scan data' };
+    const previousTheme = mock.syncStore.theme;
 
     const res = await send({ type: 'CLEAR_HISTORY' });
     assert.equal(res.success, true);
-    assert.deepEqual(mock.localStore.scanHistory, []);
-    assert.equal(mock.localStore.scanStats.total, 0);
+    assert.deepEqual(mock.localStore, {});
+    assert.equal(mock.syncStore.theme, previousTheme);
   });
 });
 

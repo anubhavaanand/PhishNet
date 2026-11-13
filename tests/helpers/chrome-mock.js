@@ -94,6 +94,11 @@ function createChromeMock(options = {}) {
           if (typeof cb === 'function') return cb();
           return Promise.resolve();
         },
+        clear: (cb) => {
+          for (const key of Object.keys(localStore)) delete localStore[key];
+          if (typeof cb === 'function') return cb();
+          return Promise.resolve();
+        },
       },
     },
 

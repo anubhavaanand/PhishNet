@@ -164,6 +164,13 @@ describe('production source hygiene', () => {
   });
 });
 
+describe('history privacy reset', () => {
+  test('Firefox clears extension-local data, matching the Chrome worker', () => {
+    const firefox = read('src/background-firefox.js');
+    assert.match(firefox, /case 'CLEAR_HISTORY':\s*await browser\.storage\.local\.clear\(\)/);
+  });
+});
+
 describe('module syntax', () => {
   test('every ES module source parses', () => {
     const esm = ['src/background.js', 'src/offscreen.js', 'src/utils/logger.js'];

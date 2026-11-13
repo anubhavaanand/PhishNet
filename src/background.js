@@ -193,7 +193,10 @@ async function handleIncomingMessage(message, sender) {
 
     case 'CLEAR_HISTORY': {
       if (chrome.storage?.local) {
-        await chrome.storage.local.set({ scanHistory: [], scanStats: { total: 0, phishing: 0, safe: 0, uncertain: 0, trusted: 0 } });
+        // Every key in storage.local is private to this extension. Clear it
+        // completely so future locally cached scan data cannot survive a
+        // user's privacy reset; preferences are kept in storage.sync.
+        await chrome.storage.local.clear();
       }
       return { success: true };
     }

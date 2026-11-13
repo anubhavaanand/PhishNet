@@ -57,6 +57,17 @@ describe('GET_STATUS / GET_SETTINGS', () => {
 });
 
 describe('UPDATE_SETTINGS', () => {
+  it('rejects malformed whitelist updates without corrupting settings or storage', async () => {
+    const before = (await send({ type: 'GET_SETTINGS' })).whitelist;
+    const storedBefore = mock.syncStore.whitelist;
+    for (const invalid of ['github.com', { 0: 'github.com' }, [42, 'github.com'], null]) {
+      const res = await send({ type: 'UPDATE_SETTINGS', settings: { whitelist: invalid } });
+      assert.equal(res.success, false, `rejected ${JSON.stringify(invalid)}`);
+      assert.deepEqual((await send({ type: 'GET_SETTINGS' })).whitelist, before);
+      assert.deepEqual(mock.syncStore.whitelist, storedBefore);
+    }
+  });
+
   it('persists the change to storage.sync', async () => {
     const res = await send({ type: 'UPDATE_SETTINGS', settings: { autoScan: false, theme: 'dark' } });
     assert.equal(res.success, true);

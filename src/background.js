@@ -169,6 +169,11 @@ async function handleIncomingMessage(message, sender) {
       return { modelStatus, progress: modelLoadProgress, settings };
 
     case 'UPDATE_SETTINGS':
+      if (message.settings && Object.hasOwn(message.settings, 'whitelist') &&
+          (!Array.isArray(message.settings.whitelist) ||
+           !message.settings.whitelist.every((entry) => typeof entry === 'string'))) {
+        return { success: false, error: 'whitelist must be an array of strings' };
+      }
       await saveSettings(message.settings);
       broadcastSettingsUpdate();
       return { success: true, settings };

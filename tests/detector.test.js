@@ -123,6 +123,9 @@ describe('URL analysis', () => {
   test('flags URL shorteners', () => {
     assert.equal(isUrlSuspicious('https://bit.ly/3xYz123'), true);
     assert.equal(isUrlSuspicious('https://tinyurl.com/emergency-auth'), true);
+    for (const host of ['rb.gy', 'tiny.cc', 'v.gd', 's.id', 'shorturl.at', 'rebrand.ly']) {
+      assert.equal(isUrlSuspicious(`https://${host}/reset-password`), true, host);
+    }
   });
 
   test('flags IP-address hostnames', () => {

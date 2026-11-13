@@ -214,7 +214,8 @@
     // URL shorteners
     urlShorteners: [
       'bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd',
-      'buff.ly', 'adf.ly', 'bc.vc', 'shorte.st', 'clck.ru', 'cutt.ly'
+      'buff.ly', 'adf.ly', 'bc.vc', 'shorte.st', 'clck.ru', 'cutt.ly',
+      'rb.gy', 'tiny.cc', 'v.gd', 's.id', 'shorturl.at', 'rebrand.ly'
     ]
   };
 

@@ -14,6 +14,7 @@ let settings = {
   sensitivityThreshold: 0.7,
   highlightLinks: true,
   showTooltip: true,
+  theme: 'auto',
   whitelist: ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
 };
 
@@ -45,6 +46,7 @@ async function loadSettings() {
       'sensitivityThreshold',
       'highlightLinks',
       'showTooltip',
+      'theme',
       'whitelist'
     ], (result) => {
       settings = {
@@ -52,6 +54,7 @@ async function loadSettings() {
         sensitivityThreshold: result?.sensitivityThreshold ?? 0.7,
         highlightLinks: result?.highlightLinks ?? true,
         showTooltip: result?.showTooltip ?? true,
+        theme: result?.theme ?? 'auto',
         whitelist: Array.isArray(result?.whitelist) ? result.whitelist : ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
       };
       resolve(settings);

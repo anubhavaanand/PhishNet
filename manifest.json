@@ -3,6 +3,8 @@
   "name": "PhishNet",
   "version": "1.1.0",
   "description": "Privacy-first phishing email detector using on-device AI. Works on Gmail & Outlook.",
+  "author": "Anubhav Anand",
+  "homepage_url": "https://github.com/anubhavaanand/code-cyan-phishNet",
   "icons": {
     "16": "public/icons/icon-16.png",
     "32": "public/icons/icon-32.png",
@@ -24,23 +26,27 @@
     "service_worker": "src/background.js",
     "type": "module"
   },
-  "content_scripts": [{
-    "matches": [
-      "https://mail.google.com/*",
-      "https://outlook.live.com/*",
-      "https://outlook.office.com/*",
-      "https://outlook.office365.com/*"
-    ],
-    "js": [
-      "src/selectors.js",
-      "src/utils/error-boundary.js",
-      "src/utils/heuristic-detector.js",
-      "src/content.js"
-    ],
-    "css": ["src/styles.css"],
-    "run_at": "document_idle",
-    "all_frames": false
-  }],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/*",
+        "https://outlook.live.com/*",
+        "https://outlook.office.com/*",
+        "https://outlook.office365.com/*"
+      ],
+      "js": [
+        "src/selectors.js",
+        "src/utils/error-boundary.js",
+        "src/utils/heuristic-detector.js",
+        "src/content.js"
+      ],
+      "css": [
+        "src/styles.css"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
   "permissions": [
     "storage",
     "offscreen"
@@ -56,8 +62,15 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
-  "web_accessible_resources": [{
-    "resources": ["public/icons/*", "vendor/ort-wasm/*"],
-    "matches": ["<all_urls>"]
-  }]
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "public/icons/*",
+        "vendor/ort-wasm/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

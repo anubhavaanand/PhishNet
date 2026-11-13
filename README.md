@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-38BDF8.svg)](LICENSE)
 [![Chrome MV3](https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/tests-30%2F30-10B981.svg)](#-tech-specs--performance)
+[![Tests](https://img.shields.io/badge/tests-213-10B981.svg)](#-tech-specs--performance)
 [![CI](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml/badge.svg)](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml)
 
 **On-device AI email security for Gmail and Outlook.**  
@@ -69,7 +69,7 @@ flowchart LR
 | **Inference Time** | ~200 ms (DistilBERT) · ~0.25 ms (Heuristic Fallback) |
 | **Extension Footprint** | ~70 KB core code · 100% idle memory coalesced |
 | **Compatibility** | Desktop Chromium (Gmail, Outlook.com, Office 365 OWA) |
-| **Testing** | 175 tests (`npm test`) — `node --test` for the extension core, Vitest for the React UI — plus GitHub Actions CI |
+| **Testing** | 213 tests (`npm test`) — `node --test` for the extension core, Vitest for the React UI — plus GitHub Actions CI |
 
 ---
 

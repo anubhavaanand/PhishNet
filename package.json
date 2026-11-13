@@ -3,6 +3,16 @@
   "version": "1.1.0",
   "private": true,
   "description": "Privacy-first phishing email detector using on-device AI",
+  "license": "MIT",
+  "author": "Anubhav Anand",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anubhavaanand/code-cyan-phishNet.git"
+  },
+  "homepage": "https://github.com/anubhavaanand/code-cyan-phishNet#readme",
+  "bugs": {
+    "url": "https://github.com/anubhavaanand/code-cyan-phishNet/issues"
+  },
   "scripts": {
     "dev": "vite",
     "pretest": "vite build",

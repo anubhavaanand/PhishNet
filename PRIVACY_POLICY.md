@@ -47,7 +47,7 @@ On first use, the extension downloads the ONNX model from Hugging Face via jsDel
 - **No server-side storage** whatsoever
 
 ## Your Rights
-- **Access**: All code is open source — inspect at https://github.com/yourusername/phishnet
+- **Access**: All code is open source — inspect at https://github.com/anubhavaanand/code-cyan-phishNet
 - **Deletion**: Uninstall extension → all local data removed
 - **Portability**: Export settings via Chrome's extension management
 - **Opt-out**: Disable auto-scan or uninstall anytime
@@ -59,7 +59,7 @@ PhishNet does not knowingly collect data from children under 13. No data is coll
 Updates will be posted to the GitHub repository. Continued use after changes constitutes acceptance.
 
 ## Contact
-- **GitHub Issues**: https://github.com/yourusername/phishnet/issues
+- **GitHub Issues**: https://github.com/anubhavaanand/code-cyan-phishNet/issues
 - **Email**: your.email@example.com
 
 ## Compliance

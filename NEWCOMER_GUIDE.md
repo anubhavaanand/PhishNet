@@ -42,7 +42,7 @@ See [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) for the full policy and the "Privac
 | `src/utils/logger.js`, `src/utils/error-boundary.js` | Logging and error handling — use these instead of raw `console.log` |
 | `src/styles.css` | Badge / inspector styling, light + dark themes |
 | `frontend/` | React popup + options UI, built with Vite into `dist/` |
-| `tests/` | 175 tests: six `node --test` suites for the extension core, plus Vitest suites under `tests/frontend/` for the React popup |
+| `tests/` | 213 tests: seven `node --test` suites for the extension core, plus Vitest suites under `tests/frontend/` for the React popup |
 | `public/` | Icons, offscreen page, and the `test-emails.html` interactive playground |
 | `vendor/` | Locally bundled ONNX Runtime + Transformers.js (no CDNs — CSP requires it) |
 | `docs/` | GitHub Pages site |
@@ -87,7 +87,7 @@ These are the same checks CI runs (`.github/workflows/ci.yml`), so if they pass 
 ```bash
 # All tests: node --test suites, then Vitest for the React UI
 npm test
-# → 149 node tests + 57 Vitest tests, all passing
+# → 150 node tests + 63 Vitest tests, all passing
 
 # Syntax-check a single file
 node --check src/utils/heuristic-detector.js

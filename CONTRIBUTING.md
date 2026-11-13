@@ -10,6 +10,8 @@ on-device, so every contribution has to preserve two hard invariants:
 
 If a change breaks either of these, it does not merge regardless of how good it is.
 
+> 👋 **First contribution?** Read the [Newcomer Guide](NEWCOMER_GUIDE.md) first — it walks through setup, the local checks, good-first-issue entry points, and the PR flow.
+
 ---
 
 ## Prerequisites

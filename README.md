@@ -44,7 +44,7 @@ Powered by local DistilBERT & ONNX Web Runtime — no cloud uploads, zero teleme
 2. Go to `chrome://extensions` and enable **Developer mode** (top-right toggle).
 3. Click **Load unpacked** and select the folder.
 
-> 💡 *The ~50 MB quantized model downloads once on your first scan and is cached locally forever after.*
+> 💡 *The ~50 MB quantized model downloads once on your first scan and is cached in the browser afterwards. Clearing your browsing data removes it — the next scan downloads it again.*
 
 ---
 
@@ -69,7 +69,7 @@ flowchart LR
 | **Inference Time** | ~200 ms (DistilBERT) · ~0.25 ms (Heuristic Fallback) |
 | **Extension Footprint** | ~70 KB core code · 100% idle memory coalesced |
 | **Compatibility** | Desktop Chromium (Gmail, Outlook.com, Office 365 OWA) |
-| **Testing** | 30 unit tests (`node tests/unit.test.js`) + GitHub Actions CI |
+| **Testing** | 175 tests (`npm test`) — `node --test` for the extension core, Vitest for the React UI — plus GitHub Actions CI |
 
 ---
 
@@ -89,6 +89,12 @@ The extension fetches the quantized ~50 MB model weights once from Hugging Face'
 <summary><b>How do I handle false positives?</b></summary>
 Click the verdict badge to inspect which heuristic or model signal fired, then click ⭐ to whitelist the sender.
 </details>
+
+---
+
+### 🤝 Contributing
+
+**New here? Start with the [Newcomer Guide](NEWCOMER_GUIDE.md)** — local setup, the checks CI runs, good-first-issue entry points, and your first PR, step by step. Full details live in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

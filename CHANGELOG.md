@@ -55,6 +55,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   compile or whose manifest points at files that were never built
 
 ### Fixed
+- Removed unused `activeTab` and `scripting` permissions; the extension
+  scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of
   ignoring every major release by default.
 - Popup and options page build to the wrong path (`dist/frontend/popup.html`) and

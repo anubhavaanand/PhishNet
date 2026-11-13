@@ -31,11 +31,9 @@ On first use, the extension downloads the ONNX model from Hugging Face via jsDel
 ## Permissions Used
 | Permission | Purpose |
 |------------|---------|
-| `activeTab` | Access current email tab for scanning |
-| `scripting` | Inject content script for DOM extraction |
 | `storage` | Save user preferences (synced across your devices) |
 | `offscreen` | Run ML inference in background context |
-| `host_permissions` | Access Gmail/Outlook DOM for email extraction |
+| `host_permissions` | Run declared content scripts on supported Gmail/Outlook origins |
 
 ## Third Parties
 - **Hugging Face / jsDelivr CDN**: Hosts the Transformers.js library and model files

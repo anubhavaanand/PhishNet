@@ -80,11 +80,9 @@ PhishNet protects users from phishing emails. We assume:
 ### Permissions Justification
 | Permission | Justification |
 |------------|---------------|
-| `activeTab` | Scan currently opened email |
-| `scripting` | Inject content script for DOM access |
 | `storage` | User preferences (synced) |
 | `offscreen` | Run ML inference (WASM needs document) |
-| `host_permissions` | Access Gmail/Outlook DOM |
+| `host_permissions` | Access Gmail/Outlook DOM through statically declared content scripts |
 
 ### Model Supply Chain
 - Model: `onnx-community/phishing-email-detection-distilbert_v2.4.1-ONNX`

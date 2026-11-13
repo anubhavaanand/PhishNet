@@ -5,6 +5,7 @@
 
 import { pipeline, env } from '../vendor/transformers.min.js';
 import logger from './utils/logger.js';
+import { truncateText } from './utils/truncate-text.mjs';
 // Side-effect import: installs globalThis.PhishNet (shared v1.1 detection
 // engine — skeletoning, Damerau typosquats, hardened URL checks)
 import './utils/heuristic-detector.js';
@@ -168,16 +169,6 @@ async function runInference(text, settings = {}) {
   } finally {
     clearTimeout(timerId);
   }
-}
-
-/**
- * Truncate text to approximate token limit
- */
-function truncateText(text, maxTokens) {
-  if (!text) return '';
-  const maxChars = maxTokens * 4;
-  if (text.length <= maxChars) return text;
-  return text.slice(0, maxChars);
 }
 
 /**

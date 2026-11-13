@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from './Icon';
+import { LogoMark } from './LogoMark';
 
 /**
  * Header — branded top bar with logo and animated status pill.
@@ -36,7 +36,7 @@ export function Header({ status, progress }) {
             boxShadow: 'var(--pn-shadow-coral)',
           }}
         >
-          <Icon name="fish" size={20} />
+          <LogoMark size={20} mono animated title="PhishNet" />
         </div>
         <div>
           <div style={{

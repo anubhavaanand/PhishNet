@@ -60,6 +60,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   assignee. The decision table is unit-tested in `tests/assign.test.js`
 
 ### Fixed
+- Firefox release packaging now excludes `public/test-emails.html`, matching
+  the existing Chrome release exclusion.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

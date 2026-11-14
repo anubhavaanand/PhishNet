@@ -195,6 +195,11 @@ describe('module syntax', () => {
 });
 
 describe('required project files', () => {
+  test('Firefox packaging excludes the email test playground', () => {
+    const buildScript = read('build-firefox.sh');
+    assert.match(buildScript, /rm -f dist-firefox\/public\/test-emails\.html/);
+  });
+
   test('Dependabot does not silently exclude all major dependency updates', () => {
     const config = read('.github/dependabot.yml');
     assert.doesNotMatch(config, /dependency-name:\s*["']?\*["']?/);

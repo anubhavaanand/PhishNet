@@ -12,6 +12,8 @@ mkdir -p dist-firefox
 
 cp -r src public vendor LICENSE PRIVACY_POLICY.md README.md dist-firefox/
 rm -f dist-firefox/src/background.js   # Chrome SW variant not used on Gecko
+# The browser-only test playground must never be included in release artifacts.
+rm -f dist-firefox/public/test-emails.html
 
 python3 - <<'PY'
 import json, os, zipfile

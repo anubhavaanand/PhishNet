@@ -287,6 +287,8 @@
     try { parsed = new URL(raw); } catch { return true; }
     // Do not allow untrusted links to invoke non-web protocols through the URL scanner.
     if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return true;
+    // URL normalizes default ports away; any remaining HTTP(S) port is nonstandard.
+    if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.port) return true;
     const domain = parsed.hostname.toLowerCase();
 
     if (detectHomographAttack(domain)) return true;

@@ -52,7 +52,7 @@ See [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) for the full policy and the "Privac
 
 ## 🚀 Quick local setup
 
-**Prerequisites:** Git, **Node.js 20+** (CI runs on Node 20), npm, and Chrome or Edge 109+.
+**Prerequisites:** Git, **Node.js 22+** (CI runs on Node 22), npm, and Chrome or Edge 109+.
 
 ```bash
 # 1. Fork the repo on GitHub (the "Fork" button, top-right), then clone YOUR fork
@@ -216,7 +216,7 @@ Copied from the PR template — you'll tick these boxes yourself:
 ## 🐛 Troubleshooting
 
 - **`dist/` folder missing / popup won't open** — `dist/` is gitignored, so a fresh clone needs `npm ci && npm run build` before "Load unpacked".
-- **`npm ci` fails** — make sure you're on Node 20+ and that the lockfile is untouched (`git status` clean).
+- **`npm ci` fails** — make sure you're on Node 22+ and that the lockfile is untouched (`git status` clean).
 - **Build error about an import** — run `npm run build` again after pulling the latest `main`; if it still fails, open an issue rather than working around it locally.
 - **Selectors stopped firing after a Gmail/Outlook redesign** — that's a normal, very welcome contribution: update `src/selectors.js` and add a fallback selector.
 - **First scan is slow** — expected: the ~50 MB model is downloading once and being cached.

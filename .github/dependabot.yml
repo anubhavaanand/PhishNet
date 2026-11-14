@@ -34,6 +34,19 @@ updates:
       timezone: "UTC"
     labels:
       - "dependencies"
-      - "npm"
     commit-message:
       prefix: "chore(deps):"
+    # These move as a set: react and react-dom must share a major, and vite
+    # and @vitejs/plugin-react must too. One PR per package produced four
+    # individually-unmergeable halves (react 19 against react-dom 18, vite 8
+    # against plugin-react 4) that each failed ERESOLVE on install.
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/plugin-react"
+          - "vitest"

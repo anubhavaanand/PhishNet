@@ -44,10 +44,9 @@
 
 ### Documentation
 - [ ] Updated README.md if user-facing change
-- [ ] Updated DESIGN.md if architecture change
-- [ ] Updated API_REFERENCE.md if interfaces change
+- [ ] Updated SECURITY.md / PRIVACY_POLICY.md if security or privacy posture changed
 - [ ] JSDoc comments for new public functions
-- [ ] CHANGELOG.md entry added
+- [ ] Noted "user-facing" below if the change deserves a changelog entry (maintainer compiles the changelog; do not edit CHANGELOG.md)
 
 ### Screenshots/Videos (if UI change)
 <!-- Drag and drop or link -->

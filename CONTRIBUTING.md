@@ -288,8 +288,13 @@ npm run build     # must succeed
 - [ ] No email content leaves the browser
 - [ ] Firefox path considered if you touched the popup or background
 - [ ] Tests added or updated
-- [ ] Docs updated (`README.md`, `CHANGELOG.md`)
-- [ ] `CHANGELOG.md` entry under `Unreleased`
+- [ ] Docs updated (`README.md`, `SECURITY.md`, `PRIVACY_POLICY.md`)
+
+**Do not edit `CHANGELOG.md`.** Every PR that touches the same few lines under
+`Unreleased` conflicts with every other one, which is how a queue of good PRs
+turns into a queue of blocked ones. The maintainer compiles the changelog from
+the merged PR titles at release time. Say "user-facing" in the PR body if the
+change deserves an entry.
 
 ### Opening it
 

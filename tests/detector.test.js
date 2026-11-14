@@ -221,6 +221,32 @@ describe('display-name impersonation', () => {
 });
 
 describe('heuristicDetect — classification', () => {
+  test('flags a scheme-less display URL that disguises a different destination', () => {
+    const result = heuristicDetect({
+      links: [{ href: 'https://example.net/checkout', text: 'www.paypal.com/account' }],
+    });
+
+    assert.equal(result.links[0].suspicious, true);
+    assert.match(
+      result.links[0].reason,
+      /destination \(example\.net\) hides behind display text \(www\.paypal\.com\)/i
+    );
+  });
+
+  test('accepts matching scheme-less display URLs and ordinary link labels', () => {
+    const result = heuristicDetect({
+      links: [
+        { href: 'https://www.paypal.com/account', text: 'www.paypal.com/account' },
+        { href: 'https://www.paypal.com/help', text: 'View account details' },
+        { href: 'https://www.paypal.com/download', text: 'invoice.pdf' },
+      ],
+    });
+
+    assert.equal(result.links[0].suspicious, false);
+    assert.equal(result.links[1].suspicious, false);
+    assert.equal(result.links[2].suspicious, false);
+  });
+
   test('flags credential phishing with urgency and a bad link', () => {
     const result = heuristicDetect({
       subject: 'URGENT: Your Account Will Be Closed!',

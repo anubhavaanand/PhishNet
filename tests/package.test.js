@@ -181,6 +181,11 @@ describe('history privacy reset', () => {
   test('Firefox clears extension-local data, matching the Chrome worker', () => {
     const firefox = read('src/background-firefox.js');
     assert.match(firefox, /case 'CLEAR_HISTORY':\s*await browser\.storage\.local\.clear\(\)/);
+describe('test-email playground DOM safety', () => {
+  test('clears test messages without assigning HTML strings', () => {
+    const source = read('public/test-emails.html');
+    assert.doesNotMatch(source, /\.innerHTML\s*=/);
+    assert.match(source, /list\.replaceChildren\(\)/);
   });
 });
 

@@ -279,10 +279,7 @@ async function handleMessage(message) {
     }
 
     case 'CLEAR_HISTORY':
-      await browser.storage.local.set({
-        scanHistory: [],
-        scanStats: { total: 0, phishing: 0, safe: 0, uncertain: 0, trusted: 0 }
-      });
+      await browser.storage.local.clear();
       return { success: true };
 
     case 'SCAN_CURRENT_TAB': {

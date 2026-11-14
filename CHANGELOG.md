@@ -70,6 +70,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   reject through the existing error boundary without a pending timeout.
 - Model-input truncation now preserves UTF-16 surrogate pairs at character
   boundaries, preventing damaged emoji from reaching the tokenizer.
+- Clearing scan history in Chrome and Firefox now removes all extension-local
+  data (including future caches) without resetting synchronized preferences.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

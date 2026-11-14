@@ -96,4 +96,12 @@ describe('selector integrity', () => {
   test('utility selectors define skipElements', () => {
     assert.ok(Array.isArray(UTILITY_SELECTORS.skipElements));
   });
+
+  test('shortener detection covers common redirect services without duplicate hosts', () => {
+    const hosts = UTILITY_SELECTORS.urlShorteners;
+    assert.equal(new Set(hosts).size, hosts.length);
+    for (const host of ['rb.gy', 'tiny.cc', 'v.gd', 's.id', 'shorturl.at', 'rebrand.ly']) {
+      assert.ok(hosts.includes(host), `${host} must be recognized by the content script`);
+    }
+  });
 });

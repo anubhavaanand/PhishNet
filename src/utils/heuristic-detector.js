@@ -15,7 +15,7 @@
   const root = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : this);
   const UTILITY_SELECTORS = root.PhishNet?.UTILITY_SELECTORS || {
     suspiciousTlds: ['.tk','.ml','.ga','.cf','.gq','.xyz','.top','.club','.work','.date','.faith','.loan','.win','.bid','.review','.country','.stream','.download','.xin','.racing','.men','.buzz','.surf','.icu','.monster','.rest'],
-    urlShorteners: ['bit.ly','tinyurl.com','goo.gl','t.co','ow.ly','is.gd','buff.ly','adf.ly','bc.vc','shorte.st','clck.ru','cutt.ly','rb.gy']
+    urlShorteners: ['bit.ly','tinyurl.com','goo.gl','t.co','ow.ly','is.gd','buff.ly','adf.ly','bc.vc','shorte.st','clck.ru','cutt.ly','rb.gy','tiny.cc','v.gd','s.id','shorturl.at','rebrand.ly']
   };
 
   const HIGH_PROFILE_BRANDS = [

@@ -76,6 +76,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   preventing stale handlers from lingering across initialization cycles.
 - Test-email playground clears DOM nodes with `replaceChildren()` rather than
   using an HTML-string assignment.
+- URL shortener detection now covers six additional common services across
+  the content-script selector configuration and the fallback detector.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

@@ -287,6 +287,8 @@
     try { parsed = new URL(raw); } catch { return true; }
     // Do not allow untrusted links to invoke non-web protocols through the URL scanner.
     if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return true;
+    // HTTP does not protect the destination or message content in transit.
+    if (parsed.protocol === 'http:') return true;
     const domain = parsed.hostname.toLowerCase();
 
     if (detectHomographAttack(domain)) return true;
@@ -439,6 +441,13 @@
       if (!link || !link.href) return null;
       let isSusp = isUrlSuspicious(link.href);
       let linkReason = '';
+
+      // Explain the transport warning even when the host looks legitimate.
+      try {
+        if (new URL(link.href).protocol === 'http:') {
+          linkReason = 'Unencrypted HTTP link (connection can be intercepted)';
+        }
+      } catch {}
 
       let host = '';
       try { host = new URL(link.href, 'https://example.invalid').hostname.toLowerCase(); } catch {}

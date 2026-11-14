@@ -158,6 +158,18 @@ describe('URL analysis', () => {
     assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
     assert.equal(isUrlSuspicious('https://www.amazon.com/order-history'), false);
   });
+
+  test('warns about cleartext HTTP even on an otherwise trusted host', () => {
+    assert.equal(isUrlSuspicious('http://github.com/settings/security'), true);
+    assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
+    assert.equal(isUrlSuspicious('mailto:security@example.com'), false);
+    const result = heuristicDetect({
+      subject: 'Hi', text: 'Here is the link', sender: {},
+      links: [{ href: 'http://github.com/settings/security' }], attachments: []
+    });
+    assert.equal(result.links[0].suspicious, true);
+    assert.match(result.links[0].reason, /unencrypted HTTP/i);
+  });
 });
 
 describe('attachment analysis', () => {

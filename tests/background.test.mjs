@@ -136,6 +136,26 @@ describe('CLEAR_HISTORY', () => {
 });
 
 describe('SCAN_EMAIL gating', () => {
+  it('rejects oversized scan fields before forwarding to the model', async () => {
+    for (const payload of [
+      { text: 'x'.repeat(32769) },
+      { text: 'ok', subject: 's'.repeat(1025) },
+      { text: 'ok', body: 'b'.repeat(32769) },
+      { text: 'ok', links: Array(129).fill({ href: 'https://example.com' }) },
+      { text: 'ok', links: [{ href: 'h'.repeat(4097) }] },
+      { text: 'ok', attachments: Array(65).fill('hello.txt') },
+      { text: 'ok', attachments: [{ name: 'n'.repeat(1025) }] },
+      { text: 'ok', sender: { email: 'e'.repeat(1025) } },
+      { text: 'ok', links: 'not an array' },
+    ]) {
+      const sentBefore = mock.sentMessages.filter(m => m.type === 'RUN_INFERENCE').length;
+      const res = await send({ type: 'SCAN_EMAIL', payload });
+      assert.equal(res.success, false, JSON.stringify(Object.keys(payload)));
+      assert.match(res.error, /payload.*(invalid|large)/i);
+      assert.equal(mock.sentMessages.filter(m => m.type === 'RUN_INFERENCE').length, sentBefore);
+    }
+  });
+
   it('reports useHeuristic while the model is not ready', async () => {
     // The worker boots in the 'loading' state until the offscreen document
     // reports OFFSCREEN_READY.
@@ -158,6 +178,21 @@ describe('SCAN_EMAIL gating', () => {
     assert.equal(res.success, true, JSON.stringify(res));
     assert.ok(res.result, 'expected an inference result');
     assert.equal(typeof res.result.label, 'string');
+  });
+
+  it('forwards only bounded text while accepting fields at their limits', async () => {
+    const payload = {
+      text: 'x'.repeat(32768), subject: 's'.repeat(1024),
+      body: 'b'.repeat(32768),
+      links: Array(128).fill({ href: 'https://example.com' }),
+      attachments: Array(64).fill({ name: 'document.pdf' }),
+      sender: { email: 'sender@example.com' },
+      unexpectedNestedField: { unused: true }
+    };
+    const res = await send({ type: 'SCAN_EMAIL', payload });
+    assert.equal(res.success, true);
+    const forwarded = mock.sentMessages.filter(m => m.type === 'RUN_INFERENCE').at(-1);
+    assert.deepEqual(forwarded.payload, { text: payload.text });
   });
 });
 

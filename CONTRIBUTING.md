@@ -75,7 +75,7 @@ The logic lives in `.github/scripts/assign.js` and is covered by
 
 | Tool | Version | Why |
 | --- | --- | --- |
-| Node.js | 20+ (CI uses 20) | Build + test runner |
+| Node.js | 22+ (CI uses 22) | Build + test runner |
 | npm | 10+ | Lockfile is v3 |
 | Chrome | 109+ | Offscreen Documents API |
 

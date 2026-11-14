@@ -21,6 +21,47 @@ let settings = {
 
 const pendingInferenceCallbacks = new Map();
 
+// Reject oversized scan messages before copying them to the offscreen document.
+// The model only needs `text`; the remaining fields are checked because content
+// scripts legitimately include them in SCAN_EMAIL messages.
+const MAX_SCAN_TEXT = 32768;
+const MAX_SCAN_SUBJECT = 1024;
+const MAX_SCAN_LINKS = 128;
+const MAX_SCAN_ATTACHMENTS = 64;
+const MAX_SCAN_LINK_FIELD = 4096;
+const MAX_SCAN_ATTACHMENT_FIELD = 1024;
+
+function validScanPayload(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+  const fitsText = (value, limit) => value === undefined ||
+    (typeof value === 'string' && value.length <= limit);
+  if (typeof payload.text !== 'string' || payload.text.length > MAX_SCAN_TEXT ||
+      !fitsText(payload.subject, MAX_SCAN_SUBJECT) ||
+      !fitsText(payload.body, MAX_SCAN_TEXT)) return false;
+
+  if (payload.links !== undefined) {
+    if (!Array.isArray(payload.links) || payload.links.length > MAX_SCAN_LINKS) return false;
+    if (!payload.links.every(link => link && typeof link === 'object' &&
+      fitsText(link.href, MAX_SCAN_LINK_FIELD) &&
+      fitsText(link.text, MAX_SCAN_LINK_FIELD))) return false;
+  }
+  if (payload.attachments !== undefined) {
+    if (!Array.isArray(payload.attachments) || payload.attachments.length > MAX_SCAN_ATTACHMENTS) return false;
+    if (!payload.attachments.every(att => typeof att === 'string'
+      ? att.length <= MAX_SCAN_ATTACHMENT_FIELD
+      : att && typeof att === 'object' &&
+        fitsText(att.name, MAX_SCAN_ATTACHMENT_FIELD) &&
+        fitsText(att.size, MAX_SCAN_ATTACHMENT_FIELD) &&
+        fitsText(att.type, MAX_SCAN_ATTACHMENT_FIELD))) return false;
+  }
+  if (payload.sender !== undefined && (payload.sender === null ||
+      typeof payload.sender !== 'object' || Array.isArray(payload.sender) ||
+      !['name', 'email', 'domain'].every(key => fitsText(payload.sender[key], MAX_SCAN_SUBJECT)))) {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Initialize background service worker
  */
@@ -146,13 +187,17 @@ async function handleIncomingMessage(message, sender) {
       return { modelStatus, settings };
 
     case 'SCAN_EMAIL':
+      if (!validScanPayload(message.payload)) {
+        return { success: false, error: 'Scan payload is invalid or too large' };
+      }
       if (modelStatus !== 'ready') {
         logger.debug('Model not ready, returning useHeuristic signal');
         return { success: false, error: 'Model not ready', useHeuristic: true };
       }
 
       try {
-        const result = await runInference(message.payload);
+        // Do not forward links, attachments, sender or arbitrary extra fields.
+        const result = await runInference({ text: message.payload.text });
         return { success: true, result };
       } catch (error) {
         logger.error('Inference error:', error);

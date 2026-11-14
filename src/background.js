@@ -5,12 +5,13 @@
 
 import logger from './utils/logger.js';
 import { isSupportedMailTabUrl } from './utils/mail-urls.mjs';
+import { normalizeStoredSettings } from './utils/settings.mjs';
 
 // State
 let offscreenDocumentCreated = false;
 let modelStatus = 'loading'; // 'loading' | 'ready' | 'error'
 let modelLoadProgress = 0;
-let settings = {
+const DEFAULT_SETTINGS = {
   autoScan: true,
   sensitivityThreshold: 0.7,
   highlightLinks: true,
@@ -18,6 +19,7 @@ let settings = {
   theme: 'auto',
   whitelist: ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
 };
+let settings = { ...DEFAULT_SETTINGS };
 
 const pendingInferenceCallbacks = new Map();
 
@@ -83,22 +85,8 @@ async function init() {
  */
 async function loadSettings() {
   return new Promise((resolve) => {
-    chrome.storage.sync.get([
-      'autoScan',
-      'sensitivityThreshold',
-      'highlightLinks',
-      'showTooltip',
-      'theme',
-      'whitelist'
-    ], (result) => {
-      settings = {
-        autoScan: result?.autoScan ?? true,
-        sensitivityThreshold: result?.sensitivityThreshold ?? 0.7,
-        highlightLinks: result?.highlightLinks ?? true,
-        showTooltip: result?.showTooltip ?? true,
-        theme: result?.theme ?? 'auto',
-        whitelist: Array.isArray(result?.whitelist) ? result.whitelist : ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
-      };
+    chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS), (result) => {
+      settings = normalizeStoredSettings(result, DEFAULT_SETTINGS, ['auto', 'light', 'dark']);
       resolve(settings);
     });
   });

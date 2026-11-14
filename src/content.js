@@ -162,11 +162,6 @@
     try {
       const emailContent = extractEmailContent(element);
 
-      if (!emailContent.text || emailContent.text.length < 15) {
-        logger.debug('Email content too short, skipping scan');
-        return null;
-      }
-
       // Check user settings & whitelist
       let settings = { autoScan: true, sensitivityThreshold: 0.7, highlightLinks: true, showTooltip: true, whitelist: [] };
       try {
@@ -199,6 +194,11 @@
         injectBadge(element, trustedResult);
         logScanRecord(emailContent, trustedResult);
         return trustedResult;
+      }
+
+      if (!emailContent.text || emailContent.text.length < 15) {
+        logger.debug('Email content too short, skipping scan');
+        return null;
       }
 
       if (!settings.autoScan && !emailId?.startsWith('manual-')) {

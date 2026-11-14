@@ -80,6 +80,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   the content-script selector configuration and the fallback detector.
 - Attachments with identical filenames but different sizes or MIME types are
   no longer collapsed during email extraction.
+- Trusted short messages are classified against the sender whitelist before
+  the minimum-length scan safeguard is applied.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

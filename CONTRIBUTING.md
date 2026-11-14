@@ -321,6 +321,24 @@ docs(readme): correct Firefox install steps
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `build`.
 
+### Credit when work is re-applied
+
+If a PR cannot be merged as-is — a stale base, a conflict, or a change that has
+to be narrowed — prefer `git cherry-pick`, which keeps the original author on
+the commit for free.
+
+When the work has to be re-applied by hand instead, credit the original author
+in the commit:
+
+```
+Co-authored-by: Jeff <138259519+jdotc1@users.noreply.github.com>
+```
+
+One trailer per person, as the last paragraph of the message. If the commit
+cannot be amended after the fact, a comment on the original PR naming both the
+PR and the commit is the next best thing — it is the only durable link when the
+commit message does not mention them.
+
 Reference the issue in the body: `Fixes #123`.
 
 ### Review

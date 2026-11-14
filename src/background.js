@@ -4,6 +4,7 @@
  */
 
 import logger from './utils/logger.js';
+import { isSupportedMailTabUrl } from './utils/mail-urls.mjs';
 
 // State
 let offscreenDocumentCreated = false;
@@ -201,6 +202,9 @@ async function handleIncomingMessage(message, sender) {
     case 'SCAN_CURRENT_TAB': {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tabs.length > 0 && tabs[0].id) {
+        if (!isSupportedMailTabUrl(tabs[0].url)) {
+          return { success: false, error: 'Open Gmail or Outlook to scan an email.' };
+        }
         return new Promise((resolve) => {
           chrome.tabs.sendMessage(tabs[0].id, { type: 'SCAN_CURRENT_EMAIL' }, (response) => {
             if (chrome.runtime.lastError) {

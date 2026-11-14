@@ -68,6 +68,27 @@ describe('UPDATE_SETTINGS', () => {
     }
   });
 
+  it('rejects invalid scalar settings and unexpected keys without persisting them', async () => {
+    const before = await send({ type: 'GET_SETTINGS' });
+    const storedBefore = { ...mock.syncStore };
+    for (const invalid of [
+      { sensitivityThreshold: NaN },
+      { sensitivityThreshold: -0.1 },
+      { sensitivityThreshold: 1.1 },
+      { autoScan: 'false' },
+      { showTooltip: null },
+      { theme: 'unknown' },
+      { whitelist: ['valid.example', 42] },
+      { whitelist: ['  '] },
+      { extraneous: true },
+    ]) {
+      const res = await send({ type: 'UPDATE_SETTINGS', settings: invalid });
+      assert.equal(res.success, false, JSON.stringify(invalid));
+      assert.deepEqual(await send({ type: 'GET_SETTINGS' }), before);
+      assert.deepEqual(mock.syncStore, storedBefore);
+    }
+  });
+
   it('persists the change to storage.sync', async () => {
     const res = await send({ type: 'UPDATE_SETTINGS', settings: { autoScan: false, theme: 'dark' } });
     assert.equal(res.success, true);

@@ -5,19 +5,13 @@
 
 import logger from './utils/logger.js';
 import { isSupportedMailTabUrl } from './utils/mail-urls.mjs';
+import { DEFAULT_SETTINGS, normalizeStoredSettings, validateSettingsPatch } from './utils/settings-validation.mjs';
 
 // State
 let offscreenDocumentCreated = false;
 let modelStatus = 'loading'; // 'loading' | 'ready' | 'error'
 let modelLoadProgress = 0;
-let settings = {
-  autoScan: true,
-  sensitivityThreshold: 0.7,
-  highlightLinks: true,
-  showTooltip: true,
-  theme: 'auto',
-  whitelist: ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
-};
+let settings = normalizeStoredSettings(DEFAULT_SETTINGS);
 
 const pendingInferenceCallbacks = new Map();
 
@@ -91,14 +85,7 @@ async function loadSettings() {
       'theme',
       'whitelist'
     ], (result) => {
-      settings = {
-        autoScan: result?.autoScan ?? true,
-        sensitivityThreshold: result?.sensitivityThreshold ?? 0.7,
-        highlightLinks: result?.highlightLinks ?? true,
-        showTooltip: result?.showTooltip ?? true,
-        theme: result?.theme ?? 'auto',
-        whitelist: Array.isArray(result?.whitelist) ? result.whitelist : ['github.com', 'google.com', 'microsoft.com', 'amazon.com', 'apple.com']
-      };
+      settings = normalizeStoredSettings(result);
       resolve(settings);
     });
   });
@@ -215,10 +202,9 @@ async function handleIncomingMessage(message, sender) {
       return { modelStatus, progress: modelLoadProgress, settings };
 
     case 'UPDATE_SETTINGS':
-      if (message.settings && Object.hasOwn(message.settings, 'whitelist') &&
-          (!Array.isArray(message.settings.whitelist) ||
-           !message.settings.whitelist.every((entry) => typeof entry === 'string'))) {
-        return { success: false, error: 'whitelist must be an array of strings' };
+      {
+        const error = validateSettingsPatch(message.settings);
+        if (error) return { success: false, error };
       }
       await saveSettings(message.settings);
       broadcastSettingsUpdate();

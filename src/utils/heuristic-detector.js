@@ -445,9 +445,14 @@
       const lookalike = checkLookalikeBrand(host);
       if (lookalike) { isSusp = true; linkReason = lookalike.reason; }
 
-      if (link.text && /^https?:\/\//i.test(link.text.trim())) {
+      const displayText = typeof link.text === 'string' ? link.text.trim() : '';
+      // Treat www.-prefixed link text as a URL, but not arbitrary dotted labels such as filenames.
+      const isAbsoluteWebUrl = /^https?:\/\//i.test(displayText);
+      const isSchemeLessWebUrl = /^www\.(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d{1,5})?(?:[/?#]|$)/i.test(displayText);
+      if (isAbsoluteWebUrl || isSchemeLessWebUrl) {
         try {
-          const textHost = new URL(link.text.trim()).hostname.toLowerCase();
+          const displayUrl = isAbsoluteWebUrl ? displayText : `https://${displayText}`;
+          const textHost = new URL(displayUrl).hostname.toLowerCase();
           const hrefHost = new URL(link.href).hostname.toLowerCase();
           if (textHost !== hrefHost) {
             isSusp = true;

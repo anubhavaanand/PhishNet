@@ -164,6 +164,22 @@ describe('production source hygiene', () => {
   });
 });
 
+describe('marketing site security', () => {
+  const site = read('docs/index.html');
+
+  test('mock phishing links use a listener rather than an inline handler', () => {
+    assert.doesNotMatch(site, /\sonclick\s*=/i);
+    assert.match(site, /data-preview-link="inert"/);
+    assert.match(site, /querySelector\('\[data-preview-link="inert"\]'\)\?\.addEventListener\('click',\s*\(event\)\s*=>\s*event\.preventDefault\(\)\)/);
+  });
+
+  test('preview diagnostics are opt-in and do not publish a frame counter', () => {
+    assert.match(site, /const demoDebug = new URLSearchParams/);
+    assert.match(site, /if \(demoDebug\) console\.warn\(/);
+    assert.doesNotMatch(site, /window\.__pnRenders/);
+  });
+});
+
 describe('module syntax', () => {
   test('every ES module source parses', () => {
     const esm = ['src/background.js', 'src/offscreen.js', 'src/utils/logger.js'];

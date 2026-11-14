@@ -430,6 +430,7 @@
   function extractAttachments(element) {
     const selectors = currentSelectors?.selectors || {};
     const attachments = [];
+    const seenAttachments = new Set();
     const attSelectors = [
       selectors.attachmentNames,
       selectors.attachments,
@@ -443,7 +444,18 @@
         element.querySelectorAll(sel).forEach(el => {
           const name = el.getAttribute('title') || el.getAttribute('download') || el.textContent || '';
           const clean = name.trim();
-          if (clean && clean.length < 100 && clean.includes('.') && !attachments.includes(clean)) {
+          // A message can contain different files with the same filename.
+          // Dedupe overlapping DOM selectors by identity, not name alone.
+          const container = el.closest?.('[data-testid*="attachment"], .aZo') || el;
+          const attr = (node, keys) => keys.map(key => node.getAttribute?.(key)).find(Boolean) || '';
+          const size = (attr(el, ['data-size', 'data-file-size']) ||
+            attr(container, ['data-size', 'data-file-size']) ||
+            (selectors.attachmentSizes && container.querySelector?.(selectors.attachmentSizes)?.textContent) || '').trim();
+          const type = (attr(el, ['data-mime-type', 'data-type', 'type']) ||
+            attr(container, ['data-mime-type', 'data-type', 'type'])).trim().toLowerCase();
+          const identity = JSON.stringify([clean, size, type]);
+          if (clean && clean.length < 100 && clean.includes('.') && !seenAttachments.has(identity)) {
+            seenAttachments.add(identity);
             attachments.push(clean);
           }
         });

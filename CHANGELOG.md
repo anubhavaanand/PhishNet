@@ -78,6 +78,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   using an HTML-string assignment.
 - URL shortener detection now covers six additional common services across
   the content-script selector configuration and the fallback detector.
+- Attachments with identical filenames but different sizes or MIME types are
+  no longer collapsed during email extraction.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

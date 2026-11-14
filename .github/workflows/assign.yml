@@ -28,21 +28,24 @@ jobs:
     # conversation off the runner entirely.
     #
     # This is a pre-filter, not the authority: the script still validates the
-    # body with a word-boundary regex. A comment such as `/takeaway` slips past
-    # `startsWith` and exits early, which is the safe direction to be wrong in.
+    # body with a word-boundary regex, so a comment that merely mentions a
+    # command starts a runner that then exits. That is the safe direction to be
+    # wrong in — a tight guard that silently dropped a valid command would be
+    # worse than an occasional wasted run. (GitHub expressions have no `trim`,
+    # so a whitespace-tolerant startsWith is not available.)
     # tests/assign.test.js asserts every command the script accepts appears here.
     if: >-
       github.event.issue.pull_request == null &&
       github.event.comment.user.type != 'Bot' &&
       (
-        startsWith(lower(trim(github.event.comment.body)), '/assign') ||
-        startsWith(lower(trim(github.event.comment.body)), '/claim') ||
-        startsWith(lower(trim(github.event.comment.body)), '/take') ||
-        startsWith(lower(trim(github.event.comment.body)), '/release') ||
-        startsWith(lower(trim(github.event.comment.body)), '/unassign') ||
-        startsWith(lower(trim(github.event.comment.body)), '/stop') ||
-        startsWith(lower(trim(github.event.comment.body)), '/drop') ||
-        startsWith(lower(trim(github.event.comment.body)), '/unclaim')
+        contains(lower(github.event.comment.body), '/assign') ||
+        contains(lower(github.event.comment.body), '/claim') ||
+        contains(lower(github.event.comment.body), '/take') ||
+        contains(lower(github.event.comment.body), '/release') ||
+        contains(lower(github.event.comment.body), '/unassign') ||
+        contains(lower(github.event.comment.body), '/stop') ||
+        contains(lower(github.event.comment.body), '/drop') ||
+        contains(lower(github.event.comment.body), '/unclaim')
       )
     runs-on: ubuntu-24.04
     timeout-minutes: 5

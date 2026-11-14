@@ -72,6 +72,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   boundaries, preventing damaged emoji from reaching the tokenizer.
 - Clearing scan history in Chrome and Firefox now removes all extension-local
   data (including future caches) without resetting synchronized preferences.
+- Content scripts now unregister their runtime message listeners on unload,
+  preventing stale handlers from lingering across initialization cycles.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

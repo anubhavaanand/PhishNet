@@ -26,6 +26,7 @@
   // State
   let currentSelectors = null;
   let observer = null;
+  let messageListenerRegistered = false;
   let scanDebounceTimer = null;
   let lastUrl = typeof location !== 'undefined' ? location.href : '';
   const activeScans = new Set();
@@ -50,7 +51,10 @@
     startEmailObserver();
 
     // Listen for messages from background/popup
-    chrome.runtime.onMessage.addListener(handleMessage);
+    if (!messageListenerRegistered) {
+      chrome.runtime.onMessage.addListener(handleMessage);
+      messageListenerRegistered = true;
+    }
 
     // Notify background that content script is ready
     chrome.runtime.sendMessage({ type: 'CONTENT_READY', provider: currentSelectors.provider }).catch(() => {});
@@ -810,6 +814,10 @@
   window.addEventListener('beforeunload', () => {
     if (observer) observer.disconnect();
     clearTimeout(scanDebounceTimer);
+    if (messageListenerRegistered) {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+      messageListenerRegistered = false;
+    }
   });
 
   // Initialize

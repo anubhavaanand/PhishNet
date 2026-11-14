@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-38BDF8.svg)](LICENSE)
 [![Chrome MV3](https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
-[![Tests](https://img.shields.io/badge/tests-213-10B981.svg)](#-tech-specs--performance)
+[![Tests](https://img.shields.io/github/actions/workflow/status/anubhavaanand/code-cyan-phishNet/ci.yml?label=tests&event=push)](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml)
 [![CI](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml/badge.svg)](https://github.com/anubhavaanand/code-cyan-phishNet/actions/workflows/ci.yml)
 
 **On-device AI email security for Gmail and Outlook.**  

@@ -115,6 +115,27 @@ describe('isDomainSuspicious', () => {
 });
 
 describe('URL analysis', () => {
+  test('flags nonstandard web ports even for otherwise trusted hosts', () => {
+    for (const url of [
+      'https://www.paypal.com:8443/account',
+      'http://github.com:8080/login',
+      'https://github.com:9443/settings',
+    ]) {
+      assert.equal(isUrlSuspicious(url), true, `${url} must be suspicious`);
+    }
+  });
+
+  test('accepts default HTTP/HTTPS ports and ordinary mailto links', () => {
+    for (const url of [
+      'https://www.paypal.com:443/account',
+      'http://github.com:80/settings',
+      'https://github.com/settings',
+      'mailto:security@example.com',
+    ]) {
+      assert.equal(isUrlSuspicious(url), false, `${url} must not be suspicious`);
+    }
+  });
+
   test('flags high-abuse TLDs', () => {
     assert.equal(isUrlSuspicious('http://paypal-login.tk/verify'), true);
     assert.equal(isUrlSuspicious('https://microsoft-support.xyz/update'), true);

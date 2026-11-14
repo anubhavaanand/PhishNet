@@ -125,15 +125,32 @@ describe('URL analysis', () => {
     }
   });
 
-  test('accepts default HTTP/HTTPS ports and ordinary mailto links', () => {
+  test('accepts default HTTPS ports and ordinary mailto links', () => {
     for (const url of [
       'https://www.paypal.com:443/account',
-      'http://github.com:80/settings',
       'https://github.com/settings',
       'mailto:security@example.com',
     ]) {
       assert.equal(isUrlSuspicious(url), false, `${url} must not be suspicious`);
     }
+  });
+
+  test('a default port does not rescue a cleartext HTTP link', () => {
+    // :80 is the default for http, so URL parsing keeps it off `port`, but the
+    // scheme itself is the problem now.
+    assert.equal(isUrlSuspicious('http://github.com:80/settings'), true);
+  });
+
+  test('warns about cleartext HTTP even on an otherwise trusted host', () => {
+    assert.equal(isUrlSuspicious('http://github.com/settings/security'), true);
+    assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
+    assert.equal(isUrlSuspicious('mailto:security@example.com'), false);
+    const result = heuristicDetect({
+      subject: 'Hi', text: 'Here is the link', sender: {},
+      links: [{ href: 'http://github.com/settings/security' }], attachments: []
+    });
+    assert.equal(result.links[0].suspicious, true);
+    assert.match(result.links[0].reason, /unencrypted HTTP/i);
   });
 
   test('flags high-abuse TLDs', () => {

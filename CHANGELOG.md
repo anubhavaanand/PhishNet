@@ -68,6 +68,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   Outlook HTTPS origin before messaging its content script.
 - Guard synchronous Chrome messaging errors so invalidated extension contexts
   reject through the existing error boundary without a pending timeout.
+- Model-input truncation now preserves UTF-16 surrogate pairs at character
+  boundaries, preventing damaged emoji from reaching the tokenizer.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

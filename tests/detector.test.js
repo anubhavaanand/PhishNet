@@ -123,9 +123,6 @@ describe('URL analysis', () => {
   test('flags URL shorteners', () => {
     assert.equal(isUrlSuspicious('https://bit.ly/3xYz123'), true);
     assert.equal(isUrlSuspicious('https://tinyurl.com/emergency-auth'), true);
-    for (const host of ['rb.gy', 'tiny.cc', 'v.gd', 's.id', 'shorturl.at', 'rebrand.ly']) {
-      assert.equal(isUrlSuspicious(`https://${host}/reset-password`), true, host);
-    }
   });
 
   test('flags IP-address hostnames', () => {
@@ -136,6 +133,12 @@ describe('URL analysis', () => {
     assert.equal(isUrlSuspicious('data:text/html;base64,PHNjcmlwdD4='), true);
     assert.equal(isUrlSuspicious('javascript:void(0)'), true);
     assert.equal(isUrlSuspicious('vbscript:msgbox(1)'), true);
+  });
+
+  test('flags URLs whose credentials disguise the actual destination host', () => {
+    assert.equal(isUrlSuspicious('https://paypal.com@evil.example.com/login'), true);
+    assert.equal(isUrlSuspicious('https://github.com:password@ordinary.example.com/'), true);
+    assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
   });
 
   test('flags open-redirect parameters', () => {

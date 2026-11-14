@@ -19,6 +19,10 @@ const WORKFLOW = path.join(ROOT, '.github/workflows/assign.yml');
 
 const bot = require(SCRIPT);
 
+// Destructured so the guard test can compare against the script's own sets
+// rather than a copy of them.
+const { CLAIM_COMMANDS, RELEASE_COMMANDS } = bot;
+
 const labels = (...names) => names.map((name) => ({ name }));
 const issues = (...numbers) => numbers.map((n) => ({ number: n }));
 
@@ -238,6 +242,36 @@ describe('workflow wiring', () => {
   test('skips pull requests and bot comments', () => {
     assert.match(yml, /github\.event\.issue\.pull_request == null/);
     assert.match(yml, /github\.event\.comment\.user\.type != 'Bot'/);
+  });
+
+  test('the job guard admits every command the script implements', () => {
+    // The workflow `if` is a pre-filter: it stops a runner being allocated for
+    // ordinary conversation. If it drifted from the script's command list, a
+    // valid command would never reach the script and would silently do nothing.
+    //
+    // The guard matches on prefixes (`startsWith('/assign')` admits both
+    // `/assign` and `/assign-me`), so assert the real relation: every command
+    // must begin with one of the prefixes the guard tests for.
+    const guard = yml.slice(yml.indexOf('if:'), yml.indexOf('runs-on:'));
+    const prefixes = [...guard.matchAll(/'\/([a-z-]+)'/g)].map((m) => m[1]);
+    assert.ok(prefixes.length > 0, 'guard tests no command prefixes');
+
+    for (const cmd of [...CLAIM_COMMANDS, ...RELEASE_COMMANDS]) {
+      assert.ok(
+        prefixes.some((p) => cmd.startsWith(p)),
+        `job guard does not admit /${cmd} (prefixes: ${prefixes.join(', ')})`
+      );
+    }
+  });
+
+  test('the job guard does not admit non-commands', () => {
+    const guard = yml.slice(yml.indexOf('if:'), yml.indexOf('runs-on:'));
+    const prefixes = [...guard.matchAll(/'\/([a-z-]+)'/g)].map((m) => m[1]);
+    for (const body of ['please take a look', '/help', '/assignee', '/takeaway-x']) {
+      const lower = body.trim().toLowerCase();
+      const admitted = prefixes.some((p) => lower.startsWith('/' + p) && lower === '/' + p);
+      assert.equal(admitted, false, `${body} should not be admitted by the guard`);
+    }
   });
 
   test('grants issues write and nothing more', () => {

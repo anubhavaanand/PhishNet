@@ -21,9 +21,29 @@ concurrency:
 jobs:
   assign:
     name: Assign or release
+    # Every comment on every issue and PR fires this workflow. A job-level `if`
+    # is evaluated before a runner is allocated, so a false result costs nothing
+    # while a job that starts, checks out, installs Node and then finds no
+    # command costs a full run. Testing for the command here keeps ordinary
+    # conversation off the runner entirely.
+    #
+    # This is a pre-filter, not the authority: the script still validates the
+    # body with a word-boundary regex. A comment such as `/takeaway` slips past
+    # `startsWith` and exits early, which is the safe direction to be wrong in.
+    # tests/assign.test.js asserts every command the script accepts appears here.
     if: >-
       github.event.issue.pull_request == null &&
-      github.event.comment.user.type != 'Bot'
+      github.event.comment.user.type != 'Bot' &&
+      (
+        startsWith(lower(trim(github.event.comment.body)), '/assign') ||
+        startsWith(lower(trim(github.event.comment.body)), '/claim') ||
+        startsWith(lower(trim(github.event.comment.body)), '/take') ||
+        startsWith(lower(trim(github.event.comment.body)), '/release') ||
+        startsWith(lower(trim(github.event.comment.body)), '/unassign') ||
+        startsWith(lower(trim(github.event.comment.body)), '/stop') ||
+        startsWith(lower(trim(github.event.comment.body)), '/drop') ||
+        startsWith(lower(trim(github.event.comment.body)), '/unclaim')
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

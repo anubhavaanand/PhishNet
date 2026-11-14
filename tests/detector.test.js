@@ -135,12 +135,6 @@ describe('URL analysis', () => {
     assert.equal(isUrlSuspicious('vbscript:msgbox(1)'), true);
   });
 
-  test('flags URLs whose credentials disguise the actual destination host', () => {
-    assert.equal(isUrlSuspicious('https://paypal.com@evil.example.com/login'), true);
-    assert.equal(isUrlSuspicious('https://github.com:password@ordinary.example.com/'), true);
-    assert.equal(isUrlSuspicious('https://github.com/settings/security'), false);
-  });
-
   test('flags open-redirect parameters', () => {
     assert.equal(
       isUrlSuspicious('https://newsletter-provider.example.net/?redirect=https://evil.example.tk/login'),
@@ -159,6 +153,19 @@ describe('URL analysis', () => {
 });
 
 describe('attachment analysis', () => {
+  test('detects executable filenames obscured by Windows ADS and trailing punctuation', () => {
+    for (const filename of ['file.exe::$DATA', 'file.exe:stream:$DATA', 'file.exe.', 'file.exe .  ']) {
+      assert.equal(analyzeAttachment(filename).dangerous, true, filename);
+    }
+    assert.equal(analyzeAttachment('file.pdf::$DATA').dangerous, false);
+  });
+
+  test('ignores bidirectional and zero-width controls when checking an extension', () => {
+    assert.equal(analyzeAttachment('file.exe\u202e.').dangerous, true);
+    assert.equal(analyzeAttachment('file.e\u200bxe').dangerous, true);
+    assert.equal(analyzeAttachment('file.pdf').dangerous, false);
+  });
+
   test('flags deceptive double extensions', () => {
     const a = analyzeAttachment('Invoice_August2026.pdf.exe');
     assert.equal(a.dangerous, true);

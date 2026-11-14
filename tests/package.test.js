@@ -87,6 +87,17 @@ describe('manifest', () => {
     }
   });
 
+  test('does not expose extension-only icons or WASM assets to websites', () => {
+    // The browser uses manifest icons directly, and ONNX is loaded by the
+    // extension-origin offscreen document. Neither requires public access.
+    assert.equal(
+      manifest.web_accessible_resources,
+      undefined,
+      'internal resources must not be declared web-accessible'
+    );
+    assert.match(read('src/offscreen.js'), /chrome\.runtime\.getURL\('vendor\/ort-wasm\/'\)/);
+  });
+
   test('registers content scripts for Gmail and Outlook', () => {
     const matches = manifest.content_scripts.flatMap((cs) => cs.matches).join(' ');
     assert.match(matches, /mail\.google\.com/);

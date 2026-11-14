@@ -93,6 +93,15 @@ describe('manifest', () => {
     assert.match(matches, /outlook\.live\.com/);
     assert.match(matches, /outlook\.office\.com/);
   });
+
+  test('keeps bundled inference binaries and icons private to extension pages', () => {
+    // The offscreen document and manifest icons are extension-owned. They do
+    // not require web_accessible_resources, which exposes files to websites.
+    assert.deepEqual(manifest.web_accessible_resources || [], []);
+    assert.match(read('src/offscreen.js'), /chrome\.runtime\.getURL\('vendor\/ort-wasm\/'\)/);
+    assert.ok(exists('public/offscreen.html'));
+    assert.ok(exists('vendor/ort-wasm/'), 'WASM binaries must remain bundled');
+  });
 });
 
 describe('content security policy', () => {

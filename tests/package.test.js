@@ -87,6 +87,11 @@ describe('manifest', () => {
     }
   });
 
+  test('does not duplicate the Hugging Face host grant', () => {
+    const hosts = manifest.host_permissions.filter((pattern) => pattern.includes('huggingface.co'));
+    assert.deepEqual(hosts, ['https://*.huggingface.co/*']);
+  });
+
   test('registers content scripts for Gmail and Outlook', () => {
     const matches = manifest.content_scripts.flatMap((cs) => cs.matches).join(' ');
     assert.match(matches, /mail\.google\.com/);

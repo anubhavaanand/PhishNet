@@ -41,9 +41,12 @@ const claimLabel = (login) => `claimed/@${login}`;
 
 function parseCommand(body) {
   if (typeof body !== 'string') return { kind: null };
-  const match = body.trim().match(/^(\/[a-z-]+)(?:\s+|$)/i);
+  // Case-sensitive: the workflow guard matches with contains(), and GitHub
+  // expressions expose no case-folding, so accepting /ASSIGN-ME here would let
+  // a command through the script that the guard never admitted.
+  const match = body.trim().match(/^(\/[a-z-]+)(?:\s+|$)/);
   if (!match) return { kind: null };
-  const raw = match[1].slice(1).toLowerCase();
+  const raw = match[1].slice(1);
   if (CLAIM_COMMANDS.has(raw)) return { kind: 'claim', raw };
   if (RELEASE_COMMANDS.has(raw)) return { kind: 'release', raw };
   return { kind: null };

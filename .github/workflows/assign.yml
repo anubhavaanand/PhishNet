@@ -31,21 +31,24 @@ jobs:
     # body with a word-boundary regex, so a comment that merely mentions a
     # command starts a runner that then exits. That is the safe direction to be
     # wrong in — a tight guard that silently dropped a valid command would be
-    # worse than an occasional wasted run. (GitHub expressions have no `trim`,
-    # so a whitespace-tolerant startsWith is not available.)
+    # worse than an occasional wasted run.
+    #
+    # Matching is case-sensitive: GitHub expressions expose no case-folding
+    # function (no lower, no trim), so /ASSIGN-ME would slip past the guard and
+    # silently do nothing. The script is case-sensitive to match.
     # tests/assign.test.js asserts every command the script accepts appears here.
     if: >-
       github.event.issue.pull_request == null &&
       github.event.comment.user.type != 'Bot' &&
       (
-        contains(lower(github.event.comment.body), '/assign') ||
-        contains(lower(github.event.comment.body), '/claim') ||
-        contains(lower(github.event.comment.body), '/take') ||
-        contains(lower(github.event.comment.body), '/release') ||
-        contains(lower(github.event.comment.body), '/unassign') ||
-        contains(lower(github.event.comment.body), '/stop') ||
-        contains(lower(github.event.comment.body), '/drop') ||
-        contains(lower(github.event.comment.body), '/unclaim')
+        contains(github.event.comment.body, '/assign') ||
+        contains(github.event.comment.body, '/claim') ||
+        contains(github.event.comment.body, '/take') ||
+        contains(github.event.comment.body, '/release') ||
+        contains(github.event.comment.body, '/unassign') ||
+        contains(github.event.comment.body, '/stop') ||
+        contains(github.event.comment.body, '/drop') ||
+        contains(github.event.comment.body, '/unclaim')
       )
     runs-on: ubuntu-24.04
     timeout-minutes: 5

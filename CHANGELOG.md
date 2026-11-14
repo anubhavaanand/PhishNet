@@ -66,6 +66,8 @@ Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic 
   event listener and keep preview diagnostics opt-in, without a global render counter.
 - Popup-triggered scans now verify the active tab uses a supported Gmail or
   Outlook HTTPS origin before messaging its content script.
+- Guard synchronous Chrome messaging errors so invalidated extension contexts
+  reject through the existing error boundary without a pending timeout.
 - Removed unused `activeTab` and `scripting` permissions; the extension
   scans supported mail sites through statically declared content scripts.
 - Dependabot now offers major dependency updates for review instead of

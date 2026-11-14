@@ -249,28 +249,30 @@ describe('workflow wiring', () => {
     // ordinary conversation. If it drifted from the script's command list, a
     // valid command would never reach the script and would silently do nothing.
     //
-    // The guard matches on prefixes (`startsWith('/assign')` admits both
-    // `/assign` and `/assign-me`), so assert the real relation: every command
-    // must begin with one of the prefixes the guard tests for.
+    // The guard matches with contains(), so `/assign` also admits `/assign-me`.
+    // Assert the real relation: every command must contain one of the tokens.
     const guard = yml.slice(yml.indexOf('if:'), yml.indexOf('runs-on:'));
-    const prefixes = [...guard.matchAll(/'\/([a-z-]+)'/g)].map((m) => m[1]);
-    assert.ok(prefixes.length > 0, 'guard tests no command prefixes');
+    const tokens = [...guard.matchAll(/contains\(lower\(github\.event\.comment\.body\), '\/([a-z-]+)'\)/g)]
+      .map((m) => m[1]);
+    assert.ok(tokens.length > 0, 'guard tests no command tokens');
 
     for (const cmd of [...CLAIM_COMMANDS, ...RELEASE_COMMANDS]) {
       assert.ok(
-        prefixes.some((p) => cmd.startsWith(p)),
-        `job guard does not admit /${cmd} (prefixes: ${prefixes.join(', ')})`
+        tokens.some((t) => cmd.includes(t)),
+        `job guard does not admit /${cmd} (tokens: ${tokens.join(', ')})`
       );
     }
   });
 
-  test('the job guard does not admit non-commands', () => {
+  test('the job guard uses only functions GitHub expressions support', () => {
+    // GitHub expressions expose contains/startsWith/endsWith/format/join/
+    // toJSON/fromJSON/hashFiles. Using anything else (trim, for instance) makes
+    // the whole workflow file invalid, which fails the run before any job runs.
     const guard = yml.slice(yml.indexOf('if:'), yml.indexOf('runs-on:'));
-    const prefixes = [...guard.matchAll(/'\/([a-z-]+)'/g)].map((m) => m[1]);
-    for (const body of ['please take a look', '/help', '/assignee', '/takeaway-x']) {
-      const lower = body.trim().toLowerCase();
-      const admitted = prefixes.some((p) => lower.startsWith('/' + p) && lower === '/' + p);
-      assert.equal(admitted, false, `${body} should not be admitted by the guard`);
+    const called = [...guard.matchAll(/([a-zA-Z]+)\(/g)].map((m) => m[1]);
+    const allowed = new Set(['contains', 'startsWith', 'endsWith', 'format', 'join', 'toJSON', 'fromJSON', 'hashFiles', 'lower', 'upper']);
+    for (const fn of called) {
+      assert.ok(allowed.has(fn), `job guard calls unsupported function ${fn}()`);
     }
   });
 
